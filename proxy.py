@@ -7,6 +7,11 @@ IRC_PORT = 6667  # le port sur lequel votre serveur IRC est en écoute
 
 PROXY_PORT = 6668  # le port sur lequel le proxy est en écoute
 
+# Codes de couleurs
+RED = "\033[91m"
+BLUE = "\033[94m"
+ENDC = "\033[0m"
+
 def handle_client(client_socket):
     server_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     server_socket.connect((IRC_SERVER, IRC_PORT))
@@ -16,13 +21,13 @@ def handle_client(client_socket):
         if not data: break
 
         # Interceptez ou modifiez les données ici si nécessaire
-        print("Data from client:", data.decode())
+        print(f"{RED}Data from client:{ENDC}", data.decode())
 
         server_socket.send(data)
         response = server_socket.recv(4096)
         
         # Interceptez ou modifiez les données ici si nécessaire
-        print("Data from server:", response.decode())
+        print(f"{BLUE}Data from server:{ENDC}", response.decode())
 
         client_socket.send(response)
 
@@ -34,12 +39,11 @@ def main():
     proxy.bind(('0.0.0.0', PROXY_PORT))
     proxy.listen(5)
     
-    print(f"Proxy listening on port {PROXY_PORT}")
+    print(f"{BLUE}Proxy listening on port {PROXY_PORT}{ENDC}")
 
     while True:
         client, addr = proxy.accept()
-        print(f"Accepted connection from {addr[0]}:{addr[1]}")
+        print(f"{BLUE}Accepted connection from {addr[0]}:{addr[1]}{ENDC}")
         handle_client(client)
 
 main()
-

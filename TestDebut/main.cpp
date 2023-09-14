@@ -14,7 +14,8 @@ void handler(int)
 {
 	stop = true;
 }
-
+/* std::stringstream ss(buffer);
+ss >> cmd >> arg; */
 void	handle_client(int clientSocket)
 {
 	char buffer[4096];
@@ -35,16 +36,26 @@ void	handle_client(int clientSocket)
 			std::string response = ":localhost CAP * ACK :multi-prefix\r\n";
 			send(clientSocket, response.c_str(), response.size(), 0);
 		}
-/* 		if (receivedData.find("CAP END") != std::string::npos)
+		if (receivedData.find("CAP END") != std::string::npos)
 		{
 			std::cout << "commande CAP END" << std::endl;
+			send(clientSocket, receivedData.c_str(), receivedData.size(), 0);
 			continue;
-		} */
+		}
 		if (receivedData.find("NICK") != std::string::npos)
 		{
 			std::cout << "commande NICK" << std::endl;
+/* 			std::string response = ":localhost 001 grenaud- :Welcome to the Internet Relay Chat Network, grenaud-";
+			send(clientSocket, response.c_str(), response.size(), 0); */
 			continue;
 		}
+/* 		if (receivedData.find("JOIN") != std::string::npos)
+		{
+			std::cout << "commande JOIN" << std::endl;
+			std::string response = ":localhost 461 grenaud- JOIN :Not enough parameters";
+			send(clientSocket, response.c_str(), response.size(), 0);
+			continue;
+		} */
 	}
 	std::cout << "fonction handle_client finie" << std::endl;
 }
