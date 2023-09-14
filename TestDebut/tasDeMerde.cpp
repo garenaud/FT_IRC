@@ -49,6 +49,13 @@ void	handle_client(int clientSocket)
 			send(clientSocket, response.c_str(), response.size(), 0); */
 			continue;
 		}
+		if (receivedData.find("USER") != std::string::npos)
+		{
+			std::cout << "commande USER" << std::endl;
+ 			std::string response = ":localhost 001 grenaud- :Welcome to the Internet Relay Chat Network, grenaud-";
+			send(clientSocket, response.c_str(), response.size(), 0);
+			continue;
+		}
 /* 		if (receivedData.find("JOIN") != std::string::npos)
 		{
 			std::cout << "commande JOIN" << std::endl;
