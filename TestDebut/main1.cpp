@@ -45,8 +45,9 @@ void	handle_client(int clientSocket)
 			std::cout << "commande NICK" << std::endl;
 			continue;
 		}
-	}
+
 	std::cout << "fonction handle_client finie" << std::endl;
+	}
 }
 
 int main(int argc, char **argv)
@@ -54,32 +55,48 @@ int main(int argc, char **argv)
 	//signal pour gerer le ctrl + c
 	signal(SIGINT, handler);
 
-	fd_set read_fds;
+	fd_set read_fds; // file descriptor for select function
 	struct timeval tv;
 	tv.tv_sec = 1;
 	tv.tv_usec = 0;
 	if (argc != 2)
 		return 0;
+
 	//creation de la socket pour le serveur
 	//AF_INET = protocole IPV4
-	//SOCK_STREAM = type de socket oriente connexion (associes a des protocoles de transport tels que TCP)
-	//0 = le protocole, dans ce cas la on laisse le systeme choisir en fonction des autres parametres (on pourrait mettre IPROTO_TCP a la place pour indiquer explicitement que l'on souhaite utiliser le protocole TCP)
-	int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
-	//si la socket renvoie -1 c'est qu'il y a une erreur lors de la creation du serveur
+	//SOCK_STREAM = type de socket oriente connexion
+    //(associes a des protocoles de transport tels que TCP)
+	//0 = le protocole, dans ce cas la on laisse le systeme choisir
+    //en fonction des autres parametres (on pourrait mettre IPROTO_TCP
+    //a la place pour indiquer explicitement que l'on souhaite utiliser
+    //le protocole TCP)
+    int serverSocket = socket(AF_INET, SOCK_STREAM, 0);
+
+    //si la socket renvoie -1 c'est qu'il y a une erreur lors de la creation du serveur
 	if (serverSocket == -1)
 	{
 		perror("Erreur lors de la creation du serveur");
 		return 1;
 	}
 	std::cout << "La socket " << serverSocket << " est ouverte en TCP/IP" << std::endl;
-	//la structure sockaddr_in est utilise pour stocker les infos sur l'adresse et le port du serveur
+
+	//la structure sockaddr_in est utilise pour stocker
+    //les infos sur l'adresse et le port du serveur
 	struct sockaddr_in serverAddress;
-	//ici on definit le domaine d'adresse(address family) de la structure, AF_INET indique qu'on utilise le protocole IPV4
+
+	//ici on definit le domaine d'adresse(address family) de la structure,
+    //AF_INET indique qu'on utilise le protocole IPV4
 	serverAddress.sin_family = AF_INET;
-	//ici on definit le port, la fonction htons (Host to Network Short). Cette fonction assure que l'ordre des octets est correct pour le reseau
+
+	//ici on definit le port, la fonction htons (Host to Network Short).
+    //Cette fonction assure que l'ordre des octets est correct pour le reseau
 	serverAddress.sin_port = htons(atoi(argv[1]));
-	//ici on configure l'adress IP du serveur. INADDR_ANY signifie que le serveur sera en ecoute sur toutes les interfaces reseau disponible de la machine.
+
+	//ici on configure l'adress IP du serveur.
+    //INADDR_ANY signifie que le serveur sera en ecoute sur toutes
+    //les interfaces reseau disponible de la machine.
 	serverAddress.sin_addr.s_addr = INADDR_ANY;
+
 	//ici on creee une socket pour le user qui se connecterait grace a bind
 	if (bind(serverSocket, (struct sockaddr*)&serverAddress, sizeof(serverAddress)) == -1)
 	{
@@ -87,7 +104,9 @@ int main(int argc, char **argv)
 		return 1;
 	}
 
-	//on ecoute sur la socket du serveur (serverSocket), le 2e parametre est le nombre max de connexion qui peuvent etre mises en file d'attente
+	//on ecoute sur la socket du serveur (serverSocket),
+    //le 2e parametre est le nombre max de connexion qui
+    //peuvent etre mises en file d'attente
 	if (listen(serverSocket, 5) == -1)
 	{
 		perror("Erreur lors du listen");
@@ -120,10 +139,10 @@ int main(int argc, char **argv)
 				continue;
 			}
 			std::cout << "Nouvelle connexion cliente acceptee." << std::endl;
-			handle_client(clientSocket);
+		//	handle_client(clientSocket);
 			std::string welcomeMessage = "Welcome to the first server of grenaud-";
 			send(clientSocket, welcomeMessage.c_str(), welcomeMessage.size(), 0);
-			close(clientSocket);
+			//close(clientSocket);
 		}
 	}
 	if (stop == true)
