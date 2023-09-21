@@ -10,9 +10,9 @@ void *PollServer::get_in_addr(struct sockaddr *sa)
 {
     if (sa->sa_family == AF_INET) 
     {
-        return &(((struct sockaddr_in*)sa)->sin_addr);
+        return &(reinterpret_cast<struct sockaddr_in*>(sa)->sin_addr);
     }
-    return &(((struct sockaddr_in6*)sa)->sin6_addr);
+    return &(reinterpret_cast<struct sockaddr_in6*>(sa)->sin6_addr);
 }
 
 int PollServer::get_listener_socket()
@@ -32,7 +32,8 @@ int PollServer::get_listener_socket()
         exit(1);
     }
 
-    for(p = ai; p != NULL; p = p->ai_next) {
+    for(p = ai; p != NULL; p = p->ai_next) 
+    {
         listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
         if (listener < 0) 
         { 
@@ -49,15 +50,13 @@ int PollServer::get_listener_socket()
 
         break;
     }
-
     if (p == NULL) 
     {
         return -1;
     }
-
     freeaddrinfo(ai);
-
-    if (listen(listener, 10) == -1) {
+    if (listen(listener, 10) == -1) 
+    {
         return -1;
     }
 
@@ -98,17 +97,22 @@ void PollServer::run()
     struct sockaddr_storage remoteaddr;
     socklen_t addrlen;
 
-    for(;;) {
+    for(;;) 
+    {
         int poll_count = poll(&pfds[0], pfds.size(), -1);
 
-        if (poll_count == -1) {
+        if (poll_count == -1) 
+        {
             perror("poll");
             exit(1);
         }
 
-        for(size_t i = 0; i < pfds.size(); ++i) {
-            if (pfds[i].revents & POLLIN) {
-                if (pfds[i].fd == listener) {
+        for(size_t i = 0; i < pfds.size(); ++i)
+        {
+            if (pfds[i].revents & POLLIN) 
+            {
+                if (pfds[i].fd == listener) 
+                {
                     addrlen = sizeof remoteaddr;
                     int newfd = accept(listener,
                         (struct sockaddr *)&remoteaddr,
