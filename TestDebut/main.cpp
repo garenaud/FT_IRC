@@ -1,8 +1,14 @@
-#include "pollserver.hpp"
+#include "Server.hpp"
 
-int main() 
+int main(int argc, char *argv[])
 {
-    PollServer server;
-    server.run();
-    return 0;
+    if (argc == 3)
+    {
+        Server aServer;
+        aServer.setPasswd(argv[2]);
+        aServer.setPort(atoi(argv[1]));
+        aServer.run();
+    }
+    else
+    return (-1);
 }

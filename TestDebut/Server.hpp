@@ -34,8 +34,13 @@ class Server
 		void	*get_in_addr(struct sockaddr *sa);
 		int		get_listener_socket(void);
 		void	add_to_pfds(int newfd);// a voir
-		void	del_from_pdfs(); // a voir
+		void	del_from_pfds(int index); // a voir
 		void	setHint(int family, int type, int flag);
+
+		void	setListeningSocket();
+		void	handleNewConnection();
+		void	handleClient(int index);
+		void	run();
 
 	private:
 		int port;
@@ -46,12 +51,13 @@ class Server
 		int				listener_socket;//listener
 		int				accepted_socket;//newfd
 		std::string		buffer[512];//char buf[256]
-		std::string		remoteIP[INET6_ADDRSTRLEN];
+		std::string		remoteIP;// [INET6_ADDRSTRLEN];
 		socklen_t		addrlen;
 
 		struct		timeval tv;
 		struct	addrinfo	hints;
-		std::vector<pollfd>	pdfs;
+		std::vector<pollfd>	pfds;
+		struct sockaddr_storage remoteaddr;
 /*        struct sockaddr_in server_address;
 		struct sockaddr_in client_address;
 		struct sockaddr casted;
