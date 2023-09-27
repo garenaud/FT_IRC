@@ -1,4 +1,4 @@
-NAME = PollServer
+NAME = Server
 
 CC =  c++
 
@@ -8,7 +8,8 @@ RM = 		@rm -rf
 FLAGS = -Wall -Werror -Wextra -std=c++98 #-pedantic -fsanitize=address
 
 CFILES =	main.cpp \
-			pollserver.cpp \
+			User.cpp \
+			Server.cpp \
 
 
 
