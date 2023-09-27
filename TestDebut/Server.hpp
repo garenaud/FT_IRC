@@ -1,5 +1,6 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
+#include "User.hpp"
 #include <iostream>
 #include <sstream>
 #include <cstring>
@@ -18,6 +19,7 @@
 #include <poll.h>
 #include <vector>
 
+class User;
 
 class Server
 {
@@ -41,6 +43,7 @@ class Server
 		void	handleNewConnection();
 		void	handleClient(int index);
 		void	run();
+		void	addUser(int fd, const std::string& nick, const std::string& user);
 
 	private:
 		int port;
@@ -50,13 +53,14 @@ class Server
 		// variable main...
 		int				listener_socket;//listener
 		int				accepted_socket;//newfd
-		std::string		buffer[512];//char buf[256]
+		char		buffer[512];//char buf[256]
 		std::string		remoteIP;// [INET6_ADDRSTRLEN];
 		socklen_t		addrlen;
 
 		struct		timeval tv;
 		struct	addrinfo	hints;
 		std::vector<pollfd>	pfds;
+		std::vector<User> users;
 		struct sockaddr_storage remoteaddr;
 /*        struct sockaddr_in server_address;
 		struct sockaddr_in client_address;

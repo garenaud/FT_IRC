@@ -1,4 +1,5 @@
 #include "Server.hpp"
+#include "User.hpp"
 
 Server::Server() {}
 Server::~Server() {}
@@ -124,40 +125,85 @@ void    Server::handleNewConnection()
     else
     {
         add_to_pfds(this->accepted_socket);
+/*         User newUser(accepted_socket, "defaultNick", "defaultUser");
+        users.push_back(newUser); */
+        //std::cout << newUser << std::endl;
+        //std::cout << users[0];
         const char* c =this->remoteIP.c_str();
         connection = inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),(char *)c /*this->remoteIP*/, INET6_ADDRSTRLEN); //??
 
-        std::cout << "pollserver: new connection from "<< connection << "on socket " << this->accepted_socket << std::endl;
+        std::cout << "pollserver: new connection from "<< connection << " on socket " << accepted_socket << std::endl;
     }
 }
 
-void    Server::handleClient(int index)
+void Server::handleClient(int index)
 {
     int nbytes = recv(pfds[index].fd, this->buffer, sizeof(this->buffer), 0);
     int sender_fd = pfds[index].fd;
+
     if (nbytes <= 0)
     {
-    // Got error or connection closed by client
+        // Got error or connection closed by client
         if (nbytes == 0)
         {
-        // Connection closed
+            // Connection closed
             std::cerr << "pollserver: socket " << sender_fd << " hung up\n";
-        } else { perror("recv");}
-
+        } 
+        else
+        {
+            perror("recv");
+        }
         close(pfds[index].fd); // Bye!
         del_from_pfds(index);
     }
     else
     {
-    // We got some good data from a client
-        for(int j = 0; j < (int)this->pfds.size(); j++)
+        // Convertit le buffer en une chaîne C++ pour faciliter la manipulation
+        std::string received_data(this->buffer, nbytes);
+
+        // Vérifie si CAP LS a été envoyé par le client
+        if (received_data.find("CAP LS") != std::string::npos)
         {
-            // Send to everyone!
-            int dest_fd = pfds[j].fd;
-            // Except the listener and ourselves
-            if (dest_fd != this->listener_socket && dest_fd != sender_fd)
+            std::string cap_end = ":localhost CAP * LS :multi-prefix sasl\r\n";
+            send(sender_fd, cap_end.c_str(), cap_end.length(), 0);
+        }
+        if (received_data.find("CAP REQ :multi-prefix") != std::string::npos)
+        {
+            std::string cap_end = ":localhost CAP * ACK :multi-prefix\r\n";
+            send(sender_fd, cap_end.c_str(), cap_end.length(), 0);
+        }
+        if (received_data.find("CAP END") != std::string::npos)
+        {
+            std::cout << ":localhost CAP * ACK :none" << std::endl;
+        }
+        if (received_data.find("JOIN") != std::string::npos)
+        {
+            std::cout << "join..." << std::endl;
+        }
+    if (received_data.find("NICK") != std::string::npos && received_data.find("USER") != std::string::npos)
+    {
+        // Extrait les informations NICK et USER
+        std::string nick = received_data;
+        std::string user = received_data;
+        
+        // Ajoute l'utilisateur à la liste
+        addUser(pfds[index].fd, nick, user);
+    }
+        else
+        {
+            // We got some good data from a client
+            for(int j = 0; j < (int)this->pfds.size(); j++)
             {
-                if (send(dest_fd, this->buffer, nbytes, 0) == -1) {perror("send");}
+                // Send to everyone!
+                int dest_fd = pfds[j].fd;
+                // Except the listener and ourselves
+                if (dest_fd != this->listener_socket && dest_fd != sender_fd)
+                {
+                    if (send(dest_fd, this->buffer, nbytes, 0) == -1)
+                    {
+                        perror("send");
+                    }
+                }
             }
         }
     }
@@ -188,4 +234,10 @@ void    Server::run()
               }
          }
     }
+}
+
+void Server::addUser(int fd, const std::string& nick, const std::string& user)
+{
+    User newUser(fd, nick, user);
+    users.push_back(newUser);
 }
