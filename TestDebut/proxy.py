@@ -20,8 +20,14 @@ def handle_client(client_socket):
         data = client_socket.recv(4096)
         if not data: break
 
+        decoded_data = data.decode()
+
+        # Capturer et afficher les commandes NICK et USER
+#        if "NICK" in decoded_data or "USER" in decoded_data:
+#            print(f"{RED}NICK or USER command received:{ENDC} {decoded_data}")
+
         # Interceptez ou modifiez les données ici si nécessaire
-        print(f"{RED}Data from client:{ENDC}", data.decode())
+        print(f"{RED}Data from client:{ENDC}", decoded_data)
 
         server_socket.send(data)
         response = server_socket.recv(4096)
@@ -46,4 +52,5 @@ def main():
         print(f"{BLUE}Accepted connection from {addr[0]}:{addr[1]}{ENDC}")
         handle_client(client)
 
-main()
+if __name__ == '__main__':
+    main()
