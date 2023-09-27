@@ -174,7 +174,9 @@ void Server::handleClient(int index)
         }
         if (received_data.find("CAP END") != std::string::npos)
         {
-            std::cout << ":localhost CAP * ACK :none" << std::endl;
+            std::string cap_end = ":localhost CAP * ACK :none\r\n";
+            send(sender_fd, cap_end.c_str(), cap_end.length(), 0);
+            //std::cout << ":localhost CAP * ACK :none" << std::endl;
         }
         if (received_data.find("JOIN") != std::string::npos)
         {
@@ -240,4 +242,8 @@ void Server::addUser(int fd, const std::string& nick, const std::string& user)
 {
     User newUser(fd, nick, user);
     users.push_back(newUser);
+    for (std::size_t i = 0; i < users.size(); ++i) 
+    {
+        std::cout << users[i].getFd() << " NICKNAME = " << users[i].getNick() << " USERNAME = " << users[i].getUser() << std::endl;
+    }
 }
