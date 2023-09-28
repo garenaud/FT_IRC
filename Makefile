@@ -8,20 +8,21 @@ RM = 		@rm -rf
 FLAGS = -Wall -Werror -Wextra -std=c++98 #-pedantic -fsanitize=address
 
 CFILES =	main.cpp \
-			User.cpp \
-			Server.cpp \
+			srcs/User.cpp \
+			srcs/Server.cpp \
+			srcs/Msg.cpp \
 
 
 
 OBJECTS = 	$(CFILES:.cpp=.o)
 
 $(NAME): 	$(OBJECTS)
-			@$(CC) $(FLAGS) $(OBJECTS) -o $(NAME)
+			@$(CC) $(FLAGS) $(OBJECTS) # -o $(NAME)
 
 all: $(NAME)
 
 clean:
-	$(RM) ./*.o
+	$(RM) $(OBJECTS)
 
 fclean: clean
 	$(RM) $(NAME)

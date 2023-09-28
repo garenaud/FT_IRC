@@ -1,5 +1,6 @@
 #include "Server.hpp"
 #include "User.hpp"
+#include "Msg.hpp"
 
 Server::Server() {}
 Server::~Server() {}
@@ -52,7 +53,7 @@ int     Server::get_listener_socket(void)
     int yes=1;        // For setsockopt() SO_REUSEADDR, below
     int rv;
 
-    struct addrinfo *ai, *p;// hints etant prive
+    struct addrinfo *ai, *p;
     setHint(AF_UNSPEC, SOCK_STREAM, AI_PASSIVE);
 
     std::string s;
@@ -113,11 +114,10 @@ void    Server::setListeningSocket()
 
 void    Server::handleNewConnection()
 {
-   // int socket_nu;
     std::string connection;
 
     this->addrlen = sizeof(this->remoteaddr);
-    this->accepted_socket = accept(this->listener_socket,reinterpret_cast<struct sockaddr *>(&this->remoteaddr), &(this->addrlen)); // ??
+    this->accepted_socket = accept(this->listener_socket,reinterpret_cast<struct sockaddr *>(&this->remoteaddr), &(this->addrlen));
     if (this->accepted_socket == -1)
     {
         perror("accept");
@@ -130,7 +130,7 @@ void    Server::handleNewConnection()
         //std::cout << newUser << std::endl;
         //std::cout << users[0];
         const char* c =this->remoteIP.c_str();
-        connection = inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),(char *)c /*this->remoteIP*/, INET6_ADDRSTRLEN); //??
+        connection = inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),(char *)c, INET6_ADDRSTRLEN);
 
         std::cout << "pollserver: new connection from "<< connection << " on socket " << accepted_socket << std::endl;
     }
@@ -140,7 +140,10 @@ void Server::handleClient(int index)
 {
     int nbytes = recv(pfds[index].fd, this->buffer, sizeof(this->buffer), 0);
     int sender_fd = pfds[index].fd;
-
+    // partie modifiee
+    Msg     aMess;
+    aMess.initialize(this->accepted_socket, "user", this->buffer, nbytes);
+    // fin partie modifiee
     if (nbytes <= 0)
     {
         // Got error or connection closed by client
@@ -148,7 +151,7 @@ void Server::handleClient(int index)
         {
             // Connection closed
             std::cerr << "pollserver: socket " << sender_fd << " hung up\n";
-        } 
+        }
         else
         {
             perror("recv");
@@ -187,7 +190,7 @@ void Server::handleClient(int index)
         // Extrait les informations NICK et USER
         std::string nick = received_data;
         std::string user = received_data;
-        
+
         // Ajoute l'utilisateur à la liste
         addUser(pfds[index].fd, nick, user);
     }
@@ -242,7 +245,7 @@ void Server::addUser(int fd, const std::string& nick, const std::string& user)
 {
     User newUser(fd, nick, user);
     users.push_back(newUser);
-    for (std::size_t i = 0; i < users.size(); ++i) 
+    for (std::size_t i = 0; i < users.size(); ++i)
     {
         std::cout << users[i].getFd() << " NICKNAME = " << users[i].getNick() << " USERNAME = " << users[i].getUser() << std::endl;
     }
