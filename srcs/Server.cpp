@@ -142,7 +142,9 @@ void Server::handleClient(int index)
     int sender_fd = pfds[index].fd;
     // partie modifiee
     Msg     aMess;
-    aMess.initialize(this->accepted_socket, "user", this->buffer, nbytes);
+    aMess.initialize(sender_fd, "user", this->buffer, nbytes);//initialize(this->accepted_socket, "user", this->buffer, nbytes);
+    aMess.view();
+    aMess.split("\r\n");
     // fin partie modifiee
     if (nbytes <= 0)
     {
@@ -162,7 +164,9 @@ void Server::handleClient(int index)
     else
     {
         // Convertit le buffer en une chaîne C++ pour faciliter la manipulation
+       // std::cout << green;
         std::string received_data(this->buffer, nbytes);
+        // std::cout << "\n" << magenta << received_data << reset << std::endl;
 
         // Vérifie si CAP LS a été envoyé par le client
         if (received_data.find("CAP LS") != std::string::npos)
@@ -185,6 +189,7 @@ void Server::handleClient(int index)
         {
             std::cout << "join..." << std::endl;
         }
+        std::cout << reset;
     if (received_data.find("NICK") != std::string::npos && received_data.find("USER") != std::string::npos)
     {
         // Extrait les informations NICK et USER

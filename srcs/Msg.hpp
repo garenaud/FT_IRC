@@ -11,6 +11,13 @@
 #include <map>
 #include <algorithm>
 
+const std::string red("\033[0;31m");
+const std::string green("\033[1;32m");
+const std::string yellow("\033[1;33m");
+const std::string cyan("\033[0;36m");
+const std::string magenta("\033[0;35m");
+const std::string reset("\033[0m");
+
 typedef	struct	incomingMessage
 {
 	int					accepted_socket; //pour identifier d'ou cela vient du cote du serveur
@@ -35,11 +42,13 @@ class Msg
 	public:
 		Msg();
 		~Msg();
-		bool	is_complete(char * buff, size_t size);
-		size_t	size_buffer(char * buff, size_t size);
+		bool	is_complete(char * buff, size_t size);//
+		size_t	size_buffer(char * buff, size_t size);//
 		int		load_buffer(char * buff, size_t size);
 		void	trim_buffer();
 		void	test();
+		void	view();//
+		void	split(/*incomingMessage aMess,*/ std::string sep);
 
 		int		initialize(int acc_socket, std::string user, char * buff, int recv_size);
 

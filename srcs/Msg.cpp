@@ -22,7 +22,7 @@ bool	Msg::is_complete(char * buff, size_t size)
 }
 
 size_t	Msg::size_buffer(char * buff, size_t size)
-{
+{// a verifier
 	size_t	result = size;
 
 	for (size_t i=0; i < size - 1; i++)
@@ -80,10 +80,61 @@ int		Msg::initialize(int acc_socket, std::string user, char * buff, int recv_siz
 	for (size_t i=0; i < 512; i++)
 	{
 		this->aMessage.buffer_in[i] = buff[i];
+		//std::cout << yellow << this->aMessage.buffer_in[i] << reset;
 	}
+	//std::cout <<std::endl;
 	this->received_message.push_back(this->aMessage);
 	return (0);
 }
+
+void	Msg::view(void)
+{
+	std::cout << "Impression des infos du message:\n";
+	std::cout << "reception sur le soccket : " << this->aMessage.accepted_socket << std::endl;
+	std::cout << "userID : " << this->aMessage.userID << std::endl;
+	std::cout << "taille du message (recv) = "<< this->aMessage.recv_size << std::endl;
+	for (size_t i=0; i < this->aMessage.recv_size; i++)
+	{
+		if (this->aMessage.buffer_in[i] !=  '\r' && this->aMessage.buffer_in[i] !=  '\n')
+		{
+			std::cout << green << this->aMessage.buffer_in[i] << reset;
+		}
+		else if (this->aMessage.buffer_in[i] ==  '\r' ) {std::cout<< red<<'r' << reset;}
+		else if (this->aMessage.buffer_in[i] ==  '\n' ) {std::cout<< red<<'n' << reset;}
+	}
+
+}
+
+void	Msg::split(/*incomingMessage aMess,*/ std::string sep)
+{
+	// fais gaffe, length != recv_size !!
+	std::string tmp(received_message[0].buffer_in);
+	//std::string	tmp1(aMessage.buffer_in);
+	size_t	occurence = 0;
+	size_t	pos = 0;
+	std::vector<int>	block;
+	block.push_back(0);
+	while ((pos = tmp.find(sep, pos )) != std::string::npos)
+	{
+		++ occurence;
+		if (pos < tmp.length())
+		{
+			block.push_back(pos);
+		}
+		//pos += target.length();
+		++ pos;
+	}
+	//block.push_back(aMessage.recv_size);
+	block.push_back(received_message[0].recv_size);
+	//block.push_back(tmp.length());
+	for (std::vector<int>::const_iterator i = block.begin(); i != block.end(); ++i)
+	std::cout << cyan << *i << ' ';
+	std::cout << yellow << occurence << reset << std::endl;
+	block.clear();
+
+
+}
+
 void	Msg::test(void)
 {
 	strcpy(this->buffer_in,"coucou c'est moi \r\n   ");
