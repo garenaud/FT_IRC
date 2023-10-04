@@ -136,12 +136,13 @@ void    Server::handleNewConnection()
     }
 }
 
-void Server::handleClient(int index)
+void Server::handleClient(Msg &aMess, int index)
 {
     int nbytes = recv(pfds[index].fd, this->buffer, sizeof(this->buffer), 0);
     int sender_fd = pfds[index].fd;
     // partie modifiee
-    Msg     aMess;
+ //   Msg     aMess;
+   // Msg *aMess = new Msg;
     aMess.initialize(sender_fd, "user", this->buffer, nbytes);//initialize(this->accepted_socket, "user", this->buffer, nbytes);
     aMess.view();
     aMess.split("\r\n");
@@ -198,6 +199,10 @@ void Server::handleClient(int index)
 
         // Ajoute l'utilisateur à la liste
         addUser(pfds[index].fd, nick, user);
+        // ajout Gaetan
+        std::string welcome_msg = ":localhost 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "\r\n";
+        send(sender_fd, welcome_msg.c_str(), welcome_msg.length(), 0);
+        //
     }
         else
         {
@@ -222,6 +227,7 @@ void Server::handleClient(int index)
 void    Server::run()
 {
     setListeningSocket();
+       Msg     aMess;///
     for (;;)
     {
         int poll_count = poll(&pfds[0], this->pfds.size(), -1);
@@ -239,7 +245,7 @@ void    Server::run()
                   }
                   else
                   {
-                      handleClient(i);
+                      handleClient(aMess,i);///
                   }
               }
          }

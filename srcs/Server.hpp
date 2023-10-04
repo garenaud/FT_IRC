@@ -1,5 +1,6 @@
 #ifndef SERVER_HPP
 # define SERVER_HPP
+#include "Msg.hpp"
 #include "User.hpp"
 #include <iostream>
 #include <sstream>
@@ -41,7 +42,7 @@ class Server
 
 		void	setListeningSocket();
 		void	handleNewConnection();
-		void	handleClient(int index);
+		void	handleClient(Msg &aMess,int index);
 		void	run();
 		void	addUser(int fd, const std::string& nick, const std::string& user);
 

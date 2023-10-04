@@ -1,4 +1,4 @@
-NAME = Server
+NAME = Servers
 
 CC =  c++
 
@@ -9,15 +9,15 @@ FLAGS = -g -Wall -Werror -Wextra -std=c++98 #-pedantic -fsanitize=address
 
 CFILES =	main.cpp \
 			srcs/User.cpp \
-			srcs/Server.cpp \
 			srcs/Msg.cpp \
+			srcs/Server.cpp \
 
 
 
 OBJECTS = 	$(CFILES:.cpp=.o)
 
 $(NAME): 	$(OBJECTS)
-			@$(CC) $(FLAGS) $(OBJECTS) # -o $(NAME)
+			@$(CC) $(FLAGS) $(OBJECTS)  -o $(NAME)
 
 all: $(NAME)
 
