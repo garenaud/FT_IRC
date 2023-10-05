@@ -20,10 +20,9 @@ class Command
 		void		nick(User user, std::vector<std::string> params);
 		void		ping(User user, std::vector<std::string> params);
 		void		user(User user, std::vector<std::string> params);
-		
+
 		typedef void (Command::*CmdFunc)(User, std::string, std::vector<std::string>);
 		static const CmdFunc cmdArr[];
-
 	private:
 		Command();
 		Server&						server;
