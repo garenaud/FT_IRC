@@ -17,7 +17,7 @@ CFILES =	main.cpp \
 OBJECTS = 	$(CFILES:.cpp=.o)
 
 $(NAME): 	$(OBJECTS)
-			@$(CC) $(FLAGS) $(OBJECTS) # -o $(NAME)
+			@$(CC) $(FLAGS) $(OBJECTS) -o $(NAME)
 
 all: $(NAME)
 
