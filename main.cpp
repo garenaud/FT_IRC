@@ -1,5 +1,6 @@
 #include "srcs/Server.hpp"
 #include "srcs/Msg.hpp"
+#include "srcs/Command.hpp"
 
 int main(int argc, char *argv[])
 {

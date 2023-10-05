@@ -41,11 +41,13 @@ class Server
 
 		void	setListeningSocket();
 		void	handleNewConnection();
-		void	handleClient(int index);
+		void	handleClient(Msg &aMess,int index);
 		void	run();
 		void	addUser(int fd, const std::string& nick, const std::string& user);
 
 		void	sendPing(int client_fd);
+		bool	isNickAvailable(const std::string& nick);
+		int		getUserIndex(int fd);
 
 	private:
 		int port;

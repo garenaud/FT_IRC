@@ -15,6 +15,7 @@ class User
 		std::string	getUser();
 
 	private:
+		User();
 		int	fd;
 		std::string	nick;
 		std::string	user;

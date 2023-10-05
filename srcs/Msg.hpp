@@ -32,6 +32,7 @@ typedef	struct	outgoingMessage
 {
 	int					accepted_socket; //pour identifier d'ou cela vient du cote du serveur
 	std::string			userID;
+	std::string			message;
 	char				buffer_in[512];
 	size_t				message_size; //la qut de caracteres recus
 	//long int			date; // a voir si utile date de reception + format
@@ -48,15 +49,19 @@ class Msg
 		void	trim_buffer();
 		void	test();
 		void	view();//
-		void	split(/*incomingMessage aMess,*/ std::string sep);
+		void	split(std::string sep);
+		void	split2(std::string sep);
 
 		int		initialize(int acc_socket, std::string user, char * buff, int recv_size);
 
 	private:
 		char									buffer_in[512];
 		char									buffer_out[512];
+		static size_t							incomingCount;
+		static size_t							outgoingCount;
 		std::deque<char>						buffer;
 		incomingMessage							aMessage;
+		outgoingMessage							uniqueMessage;
 		std::deque<incomingMessage>				received_message;
 		std::deque<outgoingMessage>				message_list;
 };

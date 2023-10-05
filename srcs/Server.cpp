@@ -1,6 +1,7 @@
 #include "Server.hpp"
 #include "User.hpp"
 #include "Msg.hpp"
+#include "Command.hpp"
 
 Server::Server() {}
 Server::~Server() {}
@@ -125,28 +126,31 @@ void    Server::handleNewConnection()
     else
     {
         add_to_pfds(this->accepted_socket);
-/*         User newUser(accepted_socket, "defaultNick", "defaultUser");
-        users.push_back(newUser); */
+        addUser(accepted_socket, "defaultNick", "defaultUser");
+        User user(accepted_socket, "defaultNick", "defaultUser");
+        users.push_back(user);
         //std::cout << newUser << std::endl;
         //std::cout << users[0];
         const char* c =this->remoteIP.c_str();
         connection = inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),(char *)c, INET6_ADDRSTRLEN);
 
         std::cout << "pollserver: new connection from "<< connection << " on socket " << accepted_socket << std::endl;
-        sendPing(this->accepted_socket);
     }
 }
 
-void Server::handleClient(int index)
+void Server::handleClient(Msg &aMess, int index)
 {
+    // ajout de memset
+    memset(this->buffer, 0, sizeof(this->buffer)); //051023
     int nbytes = recv(pfds[index].fd, this->buffer, sizeof(this->buffer), 0);
     int sender_fd = pfds[index].fd;
     // partie modifiee
-    Msg     aMess;
+ //   Msg     aMess;
+   // Msg *aMess = new Msg;
     aMess.initialize(sender_fd, "user", this->buffer, nbytes);//initialize(this->accepted_socket, "user", this->buffer, nbytes);
     aMess.view();
-    aMess.split("\r\n");
-    //sendPing(this->pfds[index].fd);
+    //aMess.split("\r\n");
+    aMess.split2("\r\n");
     // fin partie modifiee
     if (nbytes <= 0)
     {
@@ -170,6 +174,12 @@ void Server::handleClient(int index)
         std::string received_data(this->buffer, nbytes);
         // std::cout << "\n" << magenta << received_data << reset << std::endl;
 
+        // commence la commande, faudra remoplacer les champs par le resultat du parsing
+        // le premier parametre est le serveur, le deuxieme le prefixe, le troisieme la commande, 
+        // le quatrieme les parametres
+        Command cmd(*this, "prefix", "command", std::vector<std::string>());
+        cmd.execute(users[getUserIndex(sender_fd)]);
+
         // Vérifie si CAP LS a été envoyé par le client
         if (received_data.find("CAP LS") != std::string::npos)
         {
@@ -191,19 +201,6 @@ void Server::handleClient(int index)
         {
             std::cout << "join..." << std::endl;
         }
-        if (received_data.find("PING") != std::string::npos) 
-        {
-            std::string pong_msg = "PONG :localhost\r\n";
-            send(pfds[index].fd, pong_msg.c_str(), pong_msg.length(), 0);
-            std::cout << "PING RECU" << std::endl;
-        }
-        if (received_data.find("PONG") != std::string::npos) 
-        {
-            std::string pong_msg = "PONG :localhost\r\n";
-            send(pfds[index].fd, pong_msg.c_str(), pong_msg.length(), 0);
-            std::cout << "PONG RECU" << std::endl;
-        }
-
         std::cout << reset;
     if (received_data.find("NICK") != std::string::npos && received_data.find("USER") != std::string::npos)
     {
@@ -213,10 +210,10 @@ void Server::handleClient(int index)
 
         // Ajoute l'utilisateur à la liste
         addUser(pfds[index].fd, nick, user);
+        // ajout Gaetan
         std::string welcome_msg = ":localhost 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "\r\n";
         send(sender_fd, welcome_msg.c_str(), welcome_msg.length(), 0);
-        std::string test_msg = "Oui ca s'affiche aussi enfin je crois\r\n";
-        send(pfds[index].fd, test_msg.c_str(), test_msg.length(), 0);
+        //
     }
         else
         {
@@ -241,6 +238,7 @@ void Server::handleClient(int index)
 void    Server::run()
 {
     setListeningSocket();
+       Msg     aMess;///
     for (;;)
     {
         int poll_count = poll(&pfds[0], this->pfds.size(), -1);
@@ -255,11 +253,10 @@ void    Server::run()
                   if (this->pfds[i].fd == this->listener_socket)
                   {
                       handleNewConnection();
-                      //sendPing(this->pfds[i].fd);
                   }
                   else
                   {
-                      handleClient(i);
+                      handleClient(aMess,i);///
                   }
               }
          }
@@ -281,4 +278,28 @@ void Server::sendPing(int client_fd)
     std::string ping_msg = "PING :localhost 6667\r\n";
     send(client_fd, ping_msg.c_str(), ping_msg.length(), 0);
     std::cout << "Ping envoye \n";
+}
+
+bool    Server::isNickAvailable(const std::string& nick)
+{
+    for (std::size_t i = 0; i < users.size(); ++i)
+    {
+        if (users[i].getNick() == nick)
+        {
+            return false;
+        }
+    }
+    return true;
+}
+
+int     Server::getUserIndex(int fd)
+{
+    for (std::size_t i = 0; i < users.size(); ++i)
+    {
+        if (users[i].getFd() == fd)
+        {
+            return i;
+        }
+    }
+    return -1;
 }
