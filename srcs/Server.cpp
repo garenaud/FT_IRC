@@ -138,6 +138,8 @@ void    Server::handleNewConnection()
 
 void Server::handleClient(Msg &aMess, int index)
 {
+    // ajout de memset
+    memset(this->buffer, 0, sizeof(this->buffer)); //051023
     int nbytes = recv(pfds[index].fd, this->buffer, sizeof(this->buffer), 0);
     int sender_fd = pfds[index].fd;
     // partie modifiee
@@ -145,7 +147,8 @@ void Server::handleClient(Msg &aMess, int index)
    // Msg *aMess = new Msg;
     aMess.initialize(sender_fd, "user", this->buffer, nbytes);//initialize(this->accepted_socket, "user", this->buffer, nbytes);
     aMess.view();
-    aMess.split("\r\n");
+    //aMess.split("\r\n");
+    aMess.split2("\r\n");
     // fin partie modifiee
     if (nbytes <= 0)
     {

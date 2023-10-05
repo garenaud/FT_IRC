@@ -49,13 +49,16 @@ class Msg
 		void	trim_buffer();
 		void	test();
 		void	view();//
-		void	split(/*incomingMessage aMess,*/ std::string sep);
+		void	split(std::string sep);
+		void	split2(std::string sep);
 
 		int		initialize(int acc_socket, std::string user, char * buff, int recv_size);
 
 	private:
 		char									buffer_in[512];
 		char									buffer_out[512];
+		static size_t							incomingCount;
+		static size_t							outgoingCount;
 		std::deque<char>						buffer;
 		incomingMessage							aMessage;
 		outgoingMessage							uniqueMessage;
