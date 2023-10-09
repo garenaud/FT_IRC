@@ -146,7 +146,7 @@ void Server::handleClient(Msg &aMess, int index)
  //   Msg     aMess;
    // Msg *aMess = new Msg;
     aMess.initialize(sender_fd, "user", this->buffer, nbytes);//initialize(this->accepted_socket, "user", this->buffer, nbytes);
-    aMess.view();
+    //aMess.view();
     //aMess.split("\r\n");
     aMess.split2("\r\n");
     // fin partie modifiee
@@ -230,7 +230,8 @@ void Server::handleClient(Msg &aMess, int index)
 void    Server::run()
 {
     setListeningSocket();
-       Msg     aMess;///
+      Msg     aMess;///
+     //  Msg *aMess = NULL;
     for (;;)
     {
         int poll_count = poll(&pfds[0], this->pfds.size(), -1);
