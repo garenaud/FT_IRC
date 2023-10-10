@@ -136,7 +136,7 @@ void    Server::handleNewConnection()
     }
 }
 
-void Server::handleClient(int index)
+void Server::handleClient(Msg &aMess, int index)
 {
     // ajout de memset
     memset(this->buffer, 0, sizeof(this->buffer)); //051023
@@ -146,7 +146,7 @@ void Server::handleClient(int index)
  //   Msg     aMess;
    // Msg *aMess = new Msg;
     aMess.initialize(sender_fd, "user", this->buffer, nbytes);//initialize(this->accepted_socket, "user", this->buffer, nbytes);
-    aMess.view();
+    //aMess.view();
     //aMess.split("\r\n");
     aMess.split2("\r\n");
     // fin partie modifiee
@@ -199,6 +199,19 @@ void Server::handleClient(int index)
         {
             std::cout << "join..." << std::endl;
         }
+        if (received_data.find("PING") != std::string::npos)
+        {
+            std::string pong_msg = "PONG :localhost\r\n";
+            send(pfds[index].fd, pong_msg.c_str(), pong_msg.length(), 0);
+            std::cout << "PING RECU" << std::endl;
+        }
+        if (received_data.find("PONG") != std::string::npos)
+        {
+            std::string pong_msg = "PONG :localhost\r\n";
+            send(pfds[index].fd, pong_msg.c_str(), pong_msg.length(), 0);
+            std::cout << "PONG RECU" << std::endl;
+        }
+
         std::cout << reset;
     if (received_data.find("NICK") != std::string::npos && received_data.find("USER") != std::string::npos)
     {
@@ -236,7 +249,8 @@ void Server::handleClient(int index)
 void    Server::run()
 {
     setListeningSocket();
-       Msg     aMess;///
+      Msg     aMess;///
+     //  Msg *aMess = NULL;
     for (;;)
     {
         int poll_count = poll(&pfds[0], this->pfds.size(), -1);
@@ -254,7 +268,7 @@ void    Server::run()
                   }
                   else
                   {
-                      handleClient(i);///
+                      handleClient(aMess,i);///
                   }
               }
          }
@@ -271,7 +285,7 @@ void Server::addUser(int fd, const std::string& nick, const std::string& user)
     }
 }
 
-void Server::sendPing(int client_fd) 
+void Server::sendPing(int client_fd)
 {
     std::string ping_msg = "PING :localhost 6667\r\n";
     send(client_fd, ping_msg.c_str(), ping_msg.length(), 0);

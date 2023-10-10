@@ -7,7 +7,7 @@ int main(int argc, char *argv[])
     if (argc == 3)
     {
         Msg message;
-        message.test();
+ //       message.test();
         Server aServer;
         aServer.setPasswd(argv[2]);
         aServer.setPort(atoi(argv[1]));
