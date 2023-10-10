@@ -170,13 +170,16 @@ void Server::handleClient(Msg &aMess, int index)
         // Convertit le buffer en une chaîne C++ pour faciliter la manipulation
        // std::cout << green;
         std::string received_data(this->buffer, nbytes);
+        Command cmd(*this);
+        cmd.handleData(users[getUserIndex(sender_fd)], received_data);
+        //cmd.parseLine(users[getUserIndex(sender_fd)], received_data);
         // std::cout << "\n" << magenta << received_data << reset << std::endl;
 
         // commence la commande, faudra remoplacer les champs par le resultat du parsing
         // le premier parametre est le serveur, le deuxieme le prefixe, le troisieme la commande, 
         // le quatrieme les parametres
-        Command cmd(*this, msg.prefix, msg.command, std::vector<std::string>());
-        cmd.execute(users[getUserIndex(sender_fd)]);
+/*         Command cmd(*this, msg.prefix, msg.command, std::vector<std::string>());
+        cmd.execute(users[getUserIndex(sender_fd)]); */
 
         // Vérifie si CAP LS a été envoyé par le client
         if (received_data.find("CAP LS") != std::string::npos)
@@ -281,7 +284,7 @@ void Server::addUser(int fd, const std::string& nick, const std::string& user)
     users.push_back(newUser);
     for (std::size_t i = 0; i < users.size(); ++i)
     {
-        std::cout << users[i].getFd() << " NICKNAME = " << users[i].getNick() << " USERNAME = " << users[i].getUser() << std::endl;
+        std::cout << yellow << "FD = " << users[i].getFd() << " NICKNAME = " << users[i].getNick() << " USERNAME = " << users[i].getUser() << reset << std::endl;
     }
 }
 

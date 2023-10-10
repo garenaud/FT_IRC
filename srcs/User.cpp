@@ -39,6 +39,16 @@ std::string	User::getUser()
 	return this->user;
 }
 
+void User::setPasswd(std::string passwd)
+{
+	this->passwd = passwd;
+}
+
+std::string	User::getPasswd()
+{
+	return this->passwd;
+}
+
 std::ostream& operator<<(std::ostream& o, User &src) 
 {
     o << "User = " << src.getUser() << ", Nick = " << src.getNick() << ", FD = " << src.getFd();

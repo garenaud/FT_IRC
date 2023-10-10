@@ -11,6 +11,7 @@ CFILES =	main.cpp \
 			srcs/User.cpp \
 			srcs/Msg.cpp \
 			srcs/Server.cpp \
+			srcs/Command.cpp \
 
 
 

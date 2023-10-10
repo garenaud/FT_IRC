@@ -2,6 +2,7 @@
 # define SERVER_HPP
 #include "Msg.hpp"
 #include "User.hpp"
+#include "Command.hpp"
 #include <iostream>
 #include <sstream>
 #include <cstring>
