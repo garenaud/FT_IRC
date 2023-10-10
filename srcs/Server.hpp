@@ -41,7 +41,7 @@ class Server
 
 		void	setListeningSocket();
 		void	handleNewConnection();
-		void	handleClient(Msg &aMess,int index);
+		void	handleClient(int index);
 		void	run();
 		void	addUser(int fd, const std::string& nick, const std::string& user);
 

@@ -127,8 +127,6 @@ void    Server::handleNewConnection()
     {
         add_to_pfds(this->accepted_socket);
         addUser(accepted_socket, "defaultNick", "defaultUser");
-        User user(accepted_socket, "defaultNick", "defaultUser");
-        users.push_back(user);
         //std::cout << newUser << std::endl;
         //std::cout << users[0];
         const char* c =this->remoteIP.c_str();
@@ -138,7 +136,7 @@ void    Server::handleNewConnection()
     }
 }
 
-void Server::handleClient(Msg &aMess, int index)
+void Server::handleClient(int index)
 {
     // ajout de memset
     memset(this->buffer, 0, sizeof(this->buffer)); //051023
@@ -177,7 +175,7 @@ void Server::handleClient(Msg &aMess, int index)
         // commence la commande, faudra remoplacer les champs par le resultat du parsing
         // le premier parametre est le serveur, le deuxieme le prefixe, le troisieme la commande, 
         // le quatrieme les parametres
-        Command cmd(*this, "prefix", "command", std::vector<std::string>());
+        Command cmd(*this, msg.prefix, msg.command, std::vector<std::string>());
         cmd.execute(users[getUserIndex(sender_fd)]);
 
         // Vérifie si CAP LS a été envoyé par le client
@@ -256,7 +254,7 @@ void    Server::run()
                   }
                   else
                   {
-                      handleClient(aMess,i);///
+                      handleClient(i);///
                   }
               }
          }
