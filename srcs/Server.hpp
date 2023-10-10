@@ -46,6 +46,8 @@ class Server
 		void	run();
 		void	addUser(int fd, const std::string& nick, const std::string& user);
 
+		void	sendPing(int client_fd);
+
 	private:
 		int port;
 		std::string passwd;

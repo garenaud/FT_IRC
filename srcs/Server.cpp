@@ -133,6 +133,7 @@ void    Server::handleNewConnection()
         connection = inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),(char *)c, INET6_ADDRSTRLEN);
 
         std::cout << "pollserver: new connection from "<< connection << " on socket " << accepted_socket << std::endl;
+        sendPing(this->accepted_socket);
     }
 }
 
@@ -193,6 +194,19 @@ void Server::handleClient(Msg &aMess, int index)
         {
             std::cout << "join..." << std::endl;
         }
+        if (received_data.find("PING") != std::string::npos)
+        {
+            std::string pong_msg = "PONG :localhost\r\n";
+            send(pfds[index].fd, pong_msg.c_str(), pong_msg.length(), 0);
+            std::cout << "PING RECU" << std::endl;
+        }
+        if (received_data.find("PONG") != std::string::npos)
+        {
+            std::string pong_msg = "PONG :localhost\r\n";
+            send(pfds[index].fd, pong_msg.c_str(), pong_msg.length(), 0);
+            std::cout << "PONG RECU" << std::endl;
+        }
+
         std::cout << reset;
     if (received_data.find("NICK") != std::string::npos && received_data.find("USER") != std::string::npos)
     {
@@ -246,6 +260,7 @@ void    Server::run()
                   if (this->pfds[i].fd == this->listener_socket)
                   {
                       handleNewConnection();
+                      //sendPing(this->pfds[i].fd);
                   }
                   else
                   {
@@ -264,4 +279,11 @@ void Server::addUser(int fd, const std::string& nick, const std::string& user)
     {
         std::cout << users[i].getFd() << " NICKNAME = " << users[i].getNick() << " USERNAME = " << users[i].getUser() << std::endl;
     }
+}
+
+void Server::sendPing(int client_fd)
+{
+    std::string ping_msg = "PING :localhost 6667\r\n";
+    send(client_fd, ping_msg.c_str(), ping_msg.length(), 0);
+    std::cout << "Ping envoye \n";
 }
