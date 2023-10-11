@@ -1,6 +1,7 @@
 #ifndef USER_HPP
 # define USER_HPP
 #include <iostream>
+#include "Msg.hpp"
 
 class User
 {
@@ -15,6 +16,12 @@ class User
 		std::string	getUser();
 		void		setPasswd(std::string passwd);
 		std::string	getPasswd();
+		void		setRealname(std::string realname);
+		std::string	getRealname();
+		void		setHostname(std::string hostname);
+		std::string	getHostname();
+		void		setMode(std::string mode);
+		std::string	getMode();
 /* 		void		setIsRegistered();
 		bool		getIsRegistered(); */
 
@@ -24,6 +31,9 @@ class User
 		std::string	nick;
 		std::string	user;
 		std::string	passwd;
+		std::string	realname;
+		std::string	hostname;
+		std::string mode;
 		bool	isRegistered;
 };
 

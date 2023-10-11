@@ -22,6 +22,7 @@ int		User::getFd()
 void	User::setNick(std::string nick)
 {
 	this->nick = nick;
+	std::cout << greenbg << "new nickname = " << this->nick << "fd = " << this->fd << reset << std::endl;
 }
 
 std::string	User::getNick()
@@ -32,6 +33,7 @@ std::string	User::getNick()
 void	User::setUser(std::string user)
 {
 	this->user = user;
+	std::cout << greenbg << "new username = " << this->user << " fd = " << this->fd << reset << std::endl;
 }
 
 std::string	User::getUser()
@@ -47,6 +49,36 @@ void User::setPasswd(std::string passwd)
 std::string	User::getPasswd()
 {
 	return this->passwd;
+}
+
+void User::setRealname(std::string realname)
+{
+	this->realname = realname;
+}
+
+std::string	User::getRealname()
+{
+	return this->realname;
+}
+
+void User::setHostname(std::string hostname)
+{
+	this->hostname = hostname;
+}
+
+std::string	User::getHostname()
+{
+	return this->hostname;
+}
+
+void User::setMode(std::string mode)
+{
+	this->mode = mode;
+}
+
+std::string	User::getMode()
+{
+	return this->mode;
 }
 
 std::ostream& operator<<(std::ostream& o, User &src) 

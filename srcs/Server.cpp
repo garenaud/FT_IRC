@@ -182,7 +182,7 @@ void Server::handleClient(Msg &aMess, int index)
         cmd.execute(users[getUserIndex(sender_fd)]); */
 
         // Vérifie si CAP LS a été envoyé par le client
-        if (received_data.find("CAP LS") != std::string::npos)
+        /* if (received_data.find("CAP LS") != std::string::npos)
         {
             std::string cap_end = ":localhost CAP * LS :multi-prefix sasl\r\n";
             send(sender_fd, cap_end.c_str(), cap_end.length(), 0);
@@ -228,9 +228,7 @@ void Server::handleClient(Msg &aMess, int index)
         std::string welcome_msg = ":localhost 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "\r\n";
         send(sender_fd, welcome_msg.c_str(), welcome_msg.length(), 0);
         //
-    }
-        else
-        {
+    }*/
             // We got some good data from a client
             for(int j = 0; j < (int)this->pfds.size(); j++)
             {
@@ -246,7 +244,7 @@ void Server::handleClient(Msg &aMess, int index)
                 }
             }
         }
-    }
+    
 }
 
 void    Server::run()
@@ -275,7 +273,7 @@ void    Server::run()
                   }
               }
          }
-    }
+    } 
 }
 
 void Server::addUser(int fd, const std::string& nick, const std::string& user)
@@ -317,4 +315,9 @@ int     Server::getUserIndex(int fd)
         }
     }
     return -1;
+}
+
+std::string Server::getPasswd()
+{
+    return this->passwd;
 }

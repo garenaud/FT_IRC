@@ -1,6 +1,7 @@
 #include "Command.hpp"
 #include "User.hpp"
 #include "Server.hpp"
+#include "Msg.hpp"
 
 Command::Command(Server &server, std::string prefix, std::string command, std::vector<std::string> params)
 : server(server), prefix(prefix), command(command), params(params)
@@ -12,7 +13,7 @@ Command::Command(Server &server)
 {
 }
 
-const Command::CmdFunc Command::cmdArr[] = {&Command::pass, &Command::ping, &Command::nick, &Command::user};
+const Command::CmdFunc Command::cmdArr[] = {&Command::cap, &Command::join, &Command::pass, &Command::ping, &Command::nick, &Command::user};
 Command::~Command() {}
 
 void		Command::setPrefix(std::string prefix)
@@ -53,9 +54,8 @@ std::string	Command::getParams()
 
 void 	Command::execute(User user)
 {
-    static const std::string arr[] = {"PASS", "PING", "NICK", "USER"};
-
-    for (int i = 0; i < 4; i++)
+    static const std::string arr[] = {"JOIN", "CAP", "PASS", "PING", "NICK", "USER"};
+    for (int i = 0; i < 6; i++)
     {
         if (this->command == arr[i])
         {
@@ -68,7 +68,7 @@ void 	Command::execute(User user)
 
 void	Command::ping(User user, std::string prefix, std::vector<std::string> params)
 {
-	if (params.size() >= 0)
+ 	if (params.size() >= 0)
 	{
 		std::cout << "PING = " << params[0] << std::endl;
 	}
@@ -83,10 +83,7 @@ void	Command::ping(User user, std::string prefix, std::vector<std::string> param
 
 void	Command::nick(User user, std::string prefix, std::vector<std::string> params)
 {
-	if (prefix.length() > 0)
-	{
-		std::cout << "PREFIX = " << prefix << std::endl;
-	}
+	(void)prefix;
 	if (params.size() != 1)
 	{
 		std::string err = ":server 461 " + user.getNick() + " NICK :Not enough parameters\r\n";
@@ -100,98 +97,172 @@ void	Command::nick(User user, std::string prefix, std::vector<std::string> param
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
-	if (server.isNickAvailable(nick))
+ 	if (!server.isNickAvailable(nick))
 	{
 		std::string err = ":server 433 " + user.getNick() + " NICK :Nickname is already in use\r\n";
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
 	user.setNick(nick);
-	std::cout << "NICKNAME = " << user.getNick() << std::endl;
+	std::cout << user.getFd() << " NICKNAME = " << user.getNick() << std::endl;
 }
 
 void	Command::user(User user, std::string prefix, std::vector<std::string> params)
 {
-	if (prefix.length() > 0)
-	{
-		std::cout << "PREFIX = " << prefix << std::endl;
-	}
+	(void)prefix;
 	if (params.size() != 4)
 	{
 		std::string err = ":server 461 " + user.getNick() + " USER :Not enough parameters\r\n";
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
-	std::string username = params[0];
+/* 	std::string username = params[0];
 	std::string mode = params[1];
-	std::string unused = params[2];
-	std::string realname = params[3];
-	user.setUser(username);
-	std::cout << "USERNAME = " << user.getUser() << std::endl;
+	std::string hostname = params[2];
+	std::string realname = params[3]; */
+	user.setUser(params[0]);
+	user.setMode(params[1]);
+	user.setHostname(params[2]);
+	user.setRealname(params[3]);
+	std::cout << magentabg << user.getFd() << " " << "nickName = " << user.getNick() << " username = " << user.getUser() << " realname = " << user.getRealname() << " hostname = " << user.getHostname() << " hostname = " << user.getHostname() << reset << std::endl;
 	std::string welcome_msg = ":localhost 001 " + user.getNick() + " :Welcome to the Internet Relay Network " + user.getNick() + "\r\n";
     send(user.getFd(), welcome_msg.c_str(), welcome_msg.length(), 0);
 }
 
 void	Command::pass(User user, std::string prefix, std::vector<std::string> params)
 {
-	if (prefix.length() > 0)
-	{
-		std::cout << "PREFIX = " << prefix << std::endl;
-	}
+	(void)prefix;
 	if (params.size() != 1)
 	{
 		std::string err = ":server 461 " + user.getNick() + " PASS :Not enough parameters\r\n";
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
+	std::cout << "serveur passwd = " << server.getPasswd() << " passwd = " << params[0] << std::endl;
 /* 	if (user.getIsRegistered() == true)
 	{
 		std::string err = ":server 462 " + user.getNick() + " :You may not reregister\r\n";
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		return ;
 	} */
-	if (params[0] != user.getPasswd())
+ 	if (params[0] != server.getPasswd())
 	{
 		std::string err = ":server 464 " + user.getNick() + " :Password incorrect\r\n";
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
 	user.setPasswd(params[0]);
+	std::cout << "PASSWD = " << user.getPasswd() << std::endl;
+}
+
+void	Command::cap(User user, std::string prefix, std::vector<std::string> params)
+{
+	std::cout << red << "je suis dans cap " << std::endl;
+	if (prefix.length() > 0)
+	{
+		std::cout << "PREFIX = " << prefix << std::endl;
+	}
+	if (params.size() >= 0)
+	{
+		std::string err = ":server 461 " + user.getNick() + " CAP :Not enough parameters\r\n";
+		send(user.getFd(), err.c_str(), err.length(), 0);
+		return ;
+	}
+	std::string subcommand = params[0];
+	std::string cap = params[1];
+	if (subcommand == "LS")
+	{
+		//std::string cap_msg = ":localhost CAP " + user.getNick() + " LS :cap-notify\r\n";
+        std::cout << red << "CAP = " << cap << std::endl;
+		std::string cap_end = ":localhost CAP * LS :multi-prefix sasl\r\n";
+		send(user.getFd(), cap_end.c_str(), cap_end.length(), 0);
+	}
+	else if (subcommand == "REQ")
+	{
+		//std::string cap_msg = ":localhost CAP " + user.getNick() + " ACK :cap-notify\r\n";
+		std::string cap_end = ":localhost CAP * ACK :multi-prefix\r\n";
+		send(user.getFd(), cap_end.c_str(), cap_end.length(), 0);
+	}
+	else if (subcommand == "END")
+	{
+		//std::string cap_msg = ":localhost CAP " + user.getNick() + " END\r\n";
+		std::string cap_end = ":localhost CAP * ACK :none\r\n";
+		send(user.getFd(), cap_end.c_str(), cap_end.length(), 0);
+	}
+	else
+	{
+		std::string err = ":server 410 " + user.getNick() + " :Invalid CAP subcommand\r\n";
+		send(user.getFd(), err.c_str(), err.length(), 0);
+		return ;
+	}
+}
+
+void	Command::join(User user, std::string prefix, std::vector<std::string> params)
+{
+	if (prefix.length() > 0)
+	{
+		std::cout << "PREFIX = " << prefix << std::endl;
+	}
+	if (params.size() != 2)
+	{
+		std::string err = ":server 461 " + user.getNick() + " JOIN :Not enough parameters\r\n";
+		send(user.getFd(), err.c_str(), err.length(), 0);
+		return ;
+	}
+	std::string channel = params[0];
+	if (channel[0] != '#')
+	{
+		std::string err = ":server 403 " + user.getNick() + " :No such channel\r\n";
+		send(user.getFd(), err.c_str(), err.length(), 0);
+		return ;
+	}
+	std::string join_msg = ":" + user.getNick() + " JOIN " + channel + "\r\n";
+	send(user.getFd(), join_msg.c_str(), join_msg.length(), 0);
+	std::cout << "JOIN = " << channel << std::endl;
 }
 
 void Command::handleData(User user, const std::string& data) 
 {
     buffer += data;
-
-    // Trouver toutes les commandes complètes
     std::size_t pos;
-    while ((pos = buffer.find("\r\n")) != std::string::npos) {
+    while ((pos = buffer.find("\r\n")) != std::string::npos) 
+	{
         std::string line = buffer.substr(0, pos);
         buffer = buffer.substr(pos + 2);
-
-        // Traitement de la ligne (i.e., une commande complète)
-        // Remplacer "user" par l'instance de l'utilisateur actuel
         parseLine(user, line);
     }
 }
 
-void	Command::parseLine(User user, std::string line)
+void Command::parseLine(User user, std::string line)
 {
-	std::istringstream iss(line);
+    std::istringstream iss(line);
     std::string prefix, command;
     std::vector<std::string> params;
-	user.getFd();
-
-    // Supposons que notre ligne commence par un préfixe optionnel
-    if (line[0] == ':') {
+    user.getFd();
+    if (line[0] == ':') 
+	{
         iss >> prefix;
     }
     iss >> command;
     std::string param;
-    while (iss >> param) {
-        params.push_back(param);
+    std::string lastWord;
+    while (iss >> param) 
+	{
+        if (param[0] == ':') 
+		{
+            lastWord = param.substr(1);
+            std::string remainder;
+            getline(iss, remainder);
+            lastWord += remainder;
+            params.push_back(lastWord);
+            break;
+        } 
+		else 
+		{
+            params.push_back(param);
+        }
     }
-	Command cmd(server, prefix, command, params);
-	std::cout << cyan << "command = " << cmd.getCommand() << " params = " << cmd.getParams() << reset << std::endl; 
-	cmd.execute(user);
+    Command cmd(server, prefix, command, params);
+    std::cout << cyan << "command = " << cmd.getCommand() << " params = " << cmd.getParams() << reset << std::endl; 
+    cmd.execute(user);
 }

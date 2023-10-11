@@ -29,11 +29,12 @@ class Server
 	public:
 		Server();
 		~Server();
-		void	setPort(int port);
-		int		getPort();
-		void	setStop(bool status);
-		void	setPasswd(std::string passwd);
-		void	setTV(int sec, int musec);
+		void		setPort(int port);
+		int			getPort();
+		void		setStop(bool status);
+		void		setPasswd(std::string passwd);
+		std::string	getPasswd();
+		void		setTV(int sec, int musec);
 
 		void	*get_in_addr(struct sockaddr *sa);
 		int		get_listener_socket(void);
