@@ -108,12 +108,14 @@ void	Command::nick(User &user, std::string prefix, std::vector<std::string> para
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
- 	if (!server.isNickAvailable(nick))
-	{
-		std::string err = ":server 433 " + user.getNick() + " NICK :Nickname is already in use\r\n";
-		send(user.getFd(), err.c_str(), err.length(), 0);
-		return ;
-	}
+	    int counter = 1;
+    std::string originalNick = nick;
+
+    while (!server.isNickAvailable(nick))
+    {
+        nick = originalNick + std::to_string(counter);
+        counter++;
+    }
 	user.setNick(nick);
 		if (user.getIsRegistered() == 1)
 	{
