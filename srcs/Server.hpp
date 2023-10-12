@@ -3,6 +3,7 @@
 #include "Msg.hpp"
 #include "User.hpp"
 #include "Command.hpp"
+#include "Channel.hpp"
 #include <iostream>
 #include <sstream>
 #include <cstring>
@@ -20,10 +21,13 @@
 #include <netdb.h>
 #include <poll.h>
 #include <vector>
+#include <map>
+#include <climits>
 
 class User;
 class Command;
 class Msg;
+class Channel;
 
 class Server
 {
@@ -57,6 +61,11 @@ class Server
 		int		getUserIndex(int fd);
 		void 	displayUsers();
 
+		Channel	*getChannel(std::string channelName);
+		void	createChannel(std::string channelName, User user);
+		void	rmChannel(std::string channelName);
+
+
 	private:
 		int port;
 		std::string passwd;
@@ -74,6 +83,7 @@ class Server
 		std::vector<pollfd>	pfds;
 		std::vector<User> users;
 		struct sockaddr_storage remoteaddr;
+		std::map<std::string, Channel> channels;
 /*        struct sockaddr_in server_address;
 		struct sockaddr_in client_address;
 		struct sockaddr casted;

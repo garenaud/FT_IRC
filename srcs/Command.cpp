@@ -223,6 +223,25 @@ void	Command::join(User &user, std::string prefix, std::vector<std::string> para
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
+	/// bastien test /////////
+	if (server.getChannel(channel) == nullptr)
+	{
+		server.createChannel(channel, user);
+		this->_channel = server.getChannel(channel);
+	}
+	else
+	{
+		this->_channel = server.getChannel(channel);
+		if (!this->_channel->getModeI() || (this->_channel->getModeI() && user.isInvited(this->_channel->getName())))
+		{
+			if (!this->_channel->getModeK() || (this->_channel->getModeK() && (params[1] == this->_channel->getPassword())))
+			{
+				if (this->_channel->getSize() < this->_channel->getMax())
+					this->_channel->addUser(user);
+			}
+		}
+	}
+	/////////////////////////////
 	std::string join_msg = ":" + user.getNick() + " JOIN " + channel + "\r\n";
 	send(user.getFd(), join_msg.c_str(), join_msg.length(), 0);
 	std::cout << "JOIN = " << channel << std::endl;

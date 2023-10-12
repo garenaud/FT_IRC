@@ -289,3 +289,24 @@ void    Server::displayUsers()
         std::cout << yellowbg << "FD = " << users[i].getFd() << "\t NICKNAME = " << users[i].getNick() << "\t USERNAME = " << users[i].getUser() << "\t REALNAME = " << users[i].getRealname() << reset << std::endl;
     }
 }
+
+Channel	*Server::getChannel(std::string channelName)
+{
+	std::map<std::string, Channel>::iterator it = this->channels.find(channelName);
+
+	if (it != this->channels.end())
+		return &(it->second);
+	else
+		return nullptr;
+}
+
+void	Server::createChannel(std::string channelName, User user)
+{
+	Channel channel(channelName, user);
+	this->channels.insert(std::make_pair(channelName, channel));
+}
+
+void	Server::rmChannel(std::string channelName)
+{
+	this->channels.erase(channelName);
+}
