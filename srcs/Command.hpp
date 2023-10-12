@@ -24,9 +24,11 @@ class Command
 		void		pass(User &user, std::string prefix, std::vector<std::string> params);
 		void		nick(User &user, std::string prefix, std::vector<std::string> params);
 		void		ping(User &user, std::string prefix, std::vector<std::string> params);
+		void		pong(User &user, std::string prefix, std::vector<std::string> params);
 		void		user(User &user, std::string prefix, std::vector<std::string> params);
 		void 		cap(User &user, std::string prefix, std::vector<std::string> params);
 		void		join(User &user, std::string prefix, std::vector<std::string> params);
+		void		who(User &user, std::string prefix, std::vector<std::string> params);
 		//void		registration(User user);
 		void		handleData(User &user, const std::string& data);
 		void		parseLine(User &user, std::string line);

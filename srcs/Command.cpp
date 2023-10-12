@@ -13,7 +13,7 @@ Command::Command(Server &server)
 {
 }
 
-const Command::CmdFunc Command::cmdArr[] = {&Command::cap, &Command::join, &Command::pass, &Command::ping, &Command::nick, &Command::user};
+const Command::CmdFunc Command::cmdArr[] = {&Command::cap, &Command::join, &Command::pass, &Command::ping, &Command::pong, &Command::nick, &Command::user, &Command::who};
 Command::~Command() {}
 
 void		Command::setPrefix(std::string prefix)
@@ -54,8 +54,8 @@ std::string	Command::getParams()
 
 void 	Command::execute(User &user)
 {
-    static const std::string arr[] = {"JOIN", "CAP", "PASS", "PING", "NICK", "USER"};
-    for (int i = 0; i < 6; i++)
+    static const std::string arr[] = {"JOIN", "CAP", "PASS", "PING", "PONG", "NICK", "USER", "WHO"};
+    for (size_t i = 0; i < 8; i++)
     {
         if (this->command == arr[i])
         {
@@ -72,6 +72,20 @@ void	Command::ping(User &user, std::string prefix, std::vector<std::string> para
  	if (params.size() >= 0)
 	{
 		//std::cout << "PING = " << params[0] << std::endl;
+	}
+	std::string pong = "PONG :localhost 6667\r\n";
+	send(user.getFd(), pong.c_str(), pong.length(), 0);
+	//std::cout << "Pong envoye \n";
+}
+
+void	Command::pong(User &user, std::string prefix, std::vector<std::string> params)
+{
+	(void)prefix;
+ 	if (params.size() > 0)
+	{
+		std::cout << "PONG " << params[0] << std::endl;
+		std::string pong = "PONG " + params[0] + "\r\n";
+		send(user.getFd(), pong.c_str(), pong.length(), 0);
 	}
 	std::string pong = "PONG :localhost 6667\r\n";
 	send(user.getFd(), pong.c_str(), pong.length(), 0);
@@ -272,4 +286,12 @@ void Command::parseLine(User &user, std::string line)
     Command cmd(server, prefix, command, params);
     //std::cout << cyan << "command = " << cmd.getCommand() << " params = " << cmd.getParams() << reset << std::endl; 
     cmd.execute(user);
+}
+
+void	Command::who(User &user, std::string prefix, std::vector<std::string> params)
+{
+	(void)prefix;
+	(void)params;
+	(void)user;
+	server.displayUsers();
 }
