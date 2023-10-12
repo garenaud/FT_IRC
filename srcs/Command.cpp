@@ -1,7 +1,7 @@
 #include "Command.hpp"
-#include "User.hpp"
+/* #include "User.hpp"
 #include "Server.hpp"
-#include "Msg.hpp"
+#include "Msg.hpp" */
 
 Command::Command(Server &server, std::string prefix, std::string command, std::vector<std::string> params)
 : server(server), prefix(prefix), command(command), params(params)
@@ -68,17 +68,14 @@ void 	Command::execute(User &user)
 
 void	Command::ping(User &user, std::string prefix, std::vector<std::string> params)
 {
+	(void)prefix;
  	if (params.size() >= 0)
 	{
-		std::cout << "PING = " << params[0] << std::endl;
-	}
-	if (prefix.length() > 0)
-	{
-		std::cout << "PREFIX = " << prefix << std::endl;
+		//std::cout << "PING = " << params[0] << std::endl;
 	}
 	std::string pong = "PONG :localhost 6667\r\n";
 	send(user.getFd(), pong.c_str(), pong.length(), 0);
-	std::cout << "Pong envoye \n";
+	//std::cout << "Pong envoye \n";
 }
 
 void	Command::nick(User &user, std::string prefix, std::vector<std::string> params)
@@ -110,7 +107,7 @@ void	Command::nick(User &user, std::string prefix, std::vector<std::string> para
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		user.setIsRegistered(2);
 	}	
-	std::cout << user.getFd() << " NICKNAME = " << user.getNick() << std::endl;
+	//std::cout << user.getFd() << " NICKNAME = " << user.getNick() << std::endl;
 }
 
 void	Command::user(User &user, std::string prefix, std::vector<std::string> params)
@@ -126,7 +123,7 @@ void	Command::user(User &user, std::string prefix, std::vector<std::string> para
 	user.setMode(params[1]);
 	user.setHostname(params[2]);
 	user.setRealname(params[3]);
-	std::cout << magentabg << user.getFd() << " " << "nickName = " << user.getNick() << " username = " << user.getUser() << " realname = " << user.getRealname() << " hostname = " << user.getHostname() << " hostname = " << user.getHostname() << reset << std::endl;
+	//std::cout << magentabg << user.getFd() << " " << "nickName = " << user.getNick() << " username = " << user.getUser() << " realname = " << user.getRealname() << " hostname = " << user.getHostname() << " hostname = " << user.getHostname() << reset << std::endl;
 	if (user.getIsRegistered() == 1)
 	{
 		std::string err = ":server 001 " + user.getNick() + " :Welcome to the Internet Relay Network " + user.getNick() + "\r\n";
@@ -139,14 +136,14 @@ void	Command::user(User &user, std::string prefix, std::vector<std::string> para
 void	Command::pass(User &user, std::string prefix, std::vector<std::string> params)
 {
 	(void)prefix;
-	std::cout << magenta << "isRegistered = " << user.getIsRegistered() << reset << std::endl;
+	//std::cout << magenta << "isRegistered = " << user.getIsRegistered() << reset << std::endl;
 	if (params.size() != 1)
 	{
 		std::string err = ":server 461 " + user.getNick() + " PASS :Not enough parameters\r\n";
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
-	std::cout << "serveur passwd = " << server.getPasswd() << " passwd = " << params[0] << std::endl;
+	//std::cout << "serveur passwd = " << server.getPasswd() << " passwd = " << params[0] << std::endl;
  	if (user.getIsRegistered() >= 1)
 	{
 		std::string err = ":server 462 " + user.getNick() + " :You may not reregister\r\n";
@@ -212,10 +209,7 @@ void	Command::cap(User &user, std::string prefix, std::vector<std::string> param
 
 void	Command::join(User &user, std::string prefix, std::vector<std::string> params)
 {
-	if (prefix.length() > 0)
-	{
-		std::cout << "PREFIX = " << prefix << std::endl;
-	}
+	(void) prefix;
 	if (params.size() != 2)
 	{
 		std::string err = ":server 461 " + user.getNick() + " JOIN :Not enough parameters\r\n";
@@ -276,6 +270,6 @@ void Command::parseLine(User &user, std::string line)
         }
     }
     Command cmd(server, prefix, command, params);
-    std::cout << cyan << "command = " << cmd.getCommand() << " params = " << cmd.getParams() << reset << std::endl; 
+    //std::cout << cyan << "command = " << cmd.getCommand() << " params = " << cmd.getParams() << reset << std::endl; 
     cmd.execute(user);
 }

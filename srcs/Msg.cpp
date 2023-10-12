@@ -10,7 +10,7 @@ std::string		Msg::getMessage()
 {
 	//return (this->uniqueMessage.message);
 	std::string	tmp = this->message_list[0].message;
-	std::cout << red << tmp << reset << std::endl;
+	//std::cout << red << tmp << reset << std::endl;
 	this->message_list.pop_front();
 	return (tmp);
 }
@@ -84,10 +84,11 @@ int		Msg::load_buffer(char * buff, size_t size)
 */
 void	Msg::trim_buffer(void)
 {}
-int		Msg::initialize(int acc_socket, std::string user, char * buff, int recv_size)
+int		Msg::initialize(int acc_socket, User &user, char * buff, int recv_size)
 {
 	this->aMessage.accepted_socket = acc_socket;
-	this->aMessage.userID = user;
+	this->aMessage.user = &user;
+	//std::cout << green << "user = " << this->aMessage.user->getUser() << reset << std::endl;
 	this->aMessage.recv_size = recv_size;
 //	this->aMessage.buffer.clear(); // ajout 0910
 	for (size_t i=0; i < 512; i++)
@@ -105,7 +106,7 @@ void	Msg::view(void)
 {
 	std::cout << "Impression des infos du message:\n";
 	std::cout << "reception sur le socket : " << this->aMessage.accepted_socket << std::endl;
-	std::cout << "userID : " << this->aMessage.userID << std::endl;
+	std::cout << "userID : " << this->aMessage.user << std::endl;
 	std::cout << "taille du message (recv) = "<< this->aMessage.recv_size << std::endl;
 	for (size_t i=0; i < this->aMessage.recv_size; i++)
 	{
@@ -133,11 +134,11 @@ void	Msg::split2(std::string sep)
 			tmp1.append(tmp.substr(0, found));//
 			this->aMessage.buffer.clear();//
 			//tmp1 = tmp.substr(0, found);//
-			std::cout << green << "\t\t\t" << tmp1 << std::endl;
+			//std::cout << green << "\t\t\t" << tmp1 << std::endl;
 			tmp.replace(0, found+2, "");// pb ici
 			// transfer ok (lldb)
 			this->uniqueMessage.accepted_socket = this->aMessage.accepted_socket;
-			this->uniqueMessage.userID = this->aMessage.userID;
+			this->uniqueMessage.user = this->aMessage.user;
 			this->uniqueMessage.message = tmp1;
 			this->uniqueMessage.message_size = tmp1.length();
 			this->message_list.push_back(this->uniqueMessage);
@@ -152,7 +153,7 @@ void	Msg::split2(std::string sep)
 		{
 			std::cout << yellow << this->aMessage.buffer[i] << std::endl;
 		}
-		std::cout << red << tmp << std::endl;
+		//std::cout << red << tmp << std::endl;
 
 		this->received_message.erase(received_message.begin());
 
@@ -194,7 +195,7 @@ void	Msg::split(std::string sep)
 		{
 			// transfert vers outgoing message.
 			this->uniqueMessage.accepted_socket = this->aMessage.accepted_socket;
-			this->uniqueMessage.userID = this->aMessage.userID;
+			this->uniqueMessage.user = this->aMessage.user;
 			this->uniqueMessage.message = tmp1;
 			this->uniqueMessage.message_size = tmp1.length();
 			this->message_list.push_back(this->uniqueMessage);

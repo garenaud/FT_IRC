@@ -10,6 +10,24 @@
 #include <deque>
 #include <map>
 #include <algorithm>
+#include <iostream>
+#include <sstream>
+#include <cstring>
+#include <cstdlib>
+#include <cerrno>
+#include <unistd.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <csignal>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <sys/types.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#include <poll.h>
+#include <vector>
+#include "User.hpp"
 
 const std::string red("\033[0;31m");
 const std::string redbg("\033[0;41m");
@@ -22,10 +40,12 @@ const std::string magenta("\033[0;35m");
 const std::string magentabg("\033[0;45m");
 const std::string reset("\033[0m");
 
+class User;
+
 typedef	struct	incomingMessage
 {
 	int					accepted_socket; //pour identifier d'ou cela vient du cote du serveur
-	std::string			userID;
+	User				*user;
 	char				buffer_in[512];
 	size_t				recv_size; //la qut de caracteres recus
 //	long int			date; // a voir si utile date de reception + format
@@ -35,7 +55,7 @@ typedef	struct	incomingMessage
 typedef	struct	outgoingMessage
 {
 	int					accepted_socket; //pour identifier d'ou cela vient du cote du serveur
-	std::string			userID;
+	User				*user;
 	std::string			message;
 	char				buffer_in[512];
 	size_t				message_size; //la qut de caracteres recus
@@ -58,7 +78,7 @@ class Msg
 		std::string	getMessage();// a modifier pour qu il prenne la queue
 		int		getMessageSize();
 
-		int		initialize(int acc_socket, std::string user, char * buff, int recv_size);
+		int		initialize(int acc_socket, User &user, char * buff, int recv_size);
 
 	private:
 		char									buffer_in[512];

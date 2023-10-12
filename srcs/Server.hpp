@@ -23,6 +23,7 @@
 
 class User;
 class Command;
+class Msg;
 
 class Server
 {

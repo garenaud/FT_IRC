@@ -2,7 +2,7 @@
 # define ICOMMAND_HPP
 #include <iostream>
 #include <vector>
-#include "User.hpp"
+//#include "User.hpp"
 #include "Server.hpp"
 
 class User;

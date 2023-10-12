@@ -1,27 +1,34 @@
 #include "User.hpp"
+#include "Server.hpp"
 
-User::User(int fd, std::string nick, std::string user)
+User::User(int fd, std::string nick, std::string user) : fd(fd), nick(nick), user(user), isRegistered(0)
 {
-	this->fd = fd;
-	this->nick = nick;
-	this->user = user;
-	this->isRegistered = 0;
 }
 
-User::User(int fd)
+User::User(int fd) : fd(fd), isRegistered(0)
 {
-	this->fd = fd;
-	this->isRegistered = 0;
 }
 
 User::~User() {}
 
-void	User::setFd(int fd)
+void	User::operator=(User const &src)
 {
-	this->fd = fd;
+	//this->fd = src.fd;
+	this->nick = src.nick;
+	this->user = src.user;
+	this->passwd = src.passwd;
+	this->realname = src.realname;
+	this->hostname = src.hostname;
+	this->mode = src.mode;
+	this->isRegistered = src.isRegistered;
 }
 
-int		User::getFd()
+/* void	User::setFd(int fd)
+{
+	this->fd = fd;
+} */
+
+int		User::getFd() const
 {
 	return this->fd;
 }
@@ -29,7 +36,7 @@ int		User::getFd()
 void	User::setNick(std::string nick)
 {
 	this->nick = nick;
-	std::cout << greenbg << "new nickname = " << this->nick << "fd = " << this->fd << reset << std::endl;
+	//std::cout << greenbg << "new nickname = " << this->nick << "fd = " << this->fd << reset << std::endl;
 }
 
 std::string	User::getNick()
@@ -41,7 +48,7 @@ void	User::setUser(std::string user)
 {
 	this->user = user;
 	checkRegistration();
-	std::cout << greenbg << "new username = " << this->user << " fd = " << this->fd << reset << std::endl;
+	//std::cout << greenbg << "new username = " << this->user << " fd = " << this->fd << reset << std::endl;
 }
 
 std::string	User::getUser()
@@ -92,9 +99,9 @@ std::string	User::getMode()
 
 void User::checkRegistration() 
 {
-    if (!user.empty() && !nick.empty() && !passwd.empty()) {
+    if (!user.empty() && !nick.empty() && !passwd.empty()) 
+	{
         this->isRegistered = 1;
-		std::cout << greenbg << "isRegistered = " << isRegistered << reset << std::endl;
     }
 	else
 	{
