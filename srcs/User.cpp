@@ -23,6 +23,18 @@ void	User::operator=(User const &src)
 	this->isRegistered = src.isRegistered;
 }
 
+bool	User::operator==(const User& other) const
+{
+	return (this->fd == other.fd &&
+			this->nick == other.nick &&
+			this->user == other.user &&
+			this->passwd == other.passwd &&
+			this->realname == other.realname &&
+			this->hostname == other.hostname &&
+			this->mode == other.mode &&
+			this->isRegistered == other.isRegistered);
+}
+
 /* void	User::setFd(int fd)
 {
 	this->fd = fd;
@@ -123,4 +135,20 @@ std::ostream& operator<<(std::ostream& o, User &src)
 {
     o << "User = " << src.getUser() << ", Nick = " << src.getNick() << ", FD = " << src.getFd();
     return o;
+}
+
+void	User::addInvitedChannel(std::string channelName)
+{
+	this->invitedChannels.push_back(channelName);
+}
+
+bool	User::isInvited(std::string channelName) const
+{
+	std::vector<std::string>::const_iterator it;
+	for (it = this->invitedChannels.begin(); it != this->invitedChannels.end(); ++it)
+	{
+		if (*it == channelName)
+			return true;
+	}
+	return false;
 }

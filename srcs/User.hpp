@@ -1,7 +1,7 @@
 #ifndef USER_HPP
 # define USER_HPP
 #include <iostream>
-
+#include "Server.hpp"
 //#include "Msg.hpp"
 
 class User
@@ -11,6 +11,7 @@ class User
 		User(int fd);
 		~User();
 		void		operator=(User const &src);
+		bool		operator==(const User& other) const;
 		void		setFd(int fd);
 		int			getFd() const;
 		void		setNick(std::string nick);
@@ -29,6 +30,9 @@ class User
 		int			getIsRegistered();
 		void 		checkRegistration();
 
+		void		addInvitedChannel(std::string channelName);
+		bool		isInvited(std::string channelName) const;
+
 	private:
 		const int	fd;
 		std::string	nick;
@@ -38,6 +42,8 @@ class User
 		std::string	hostname;
 		std::string mode;
 		int	isRegistered;
+
+		std::vector<std::string>	invitedChannels;
 };
 
 std::ostream& operator<<(std::ostream& o, User const &src);

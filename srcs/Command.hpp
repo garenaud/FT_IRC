@@ -7,6 +7,7 @@
 
 class User;
 class Server;
+class Channel;
 
 class Command
 {
@@ -41,6 +42,7 @@ class Command
 		std::string					prefix;
 		std::string					command;
 		std::vector<std::string>	params;
+		Channel						*_channel;
 };
 
 #endif

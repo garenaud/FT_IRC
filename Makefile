@@ -12,6 +12,7 @@ CFILES =	main.cpp \
 			srcs/Msg.cpp \
 			srcs/Server.cpp \
 			srcs/Command.cpp \
+			srcs/Channel.cpp \
 
 
 
