@@ -6,6 +6,15 @@ size_t	Msg::outgoingCount = 0;
 Msg::Msg() {};
 Msg::~Msg() {};
 
+std::string		Msg::getMessage()
+{
+	//return (this->uniqueMessage.message);
+	std::string	tmp = this->message_list[0].message;
+	std::cout << red << tmp << reset << std::endl;
+	this->message_list.pop_front();
+	return (tmp);
+}
+
 bool	Msg::is_complete(char * buff, size_t size)
 {
 	bool	result = false;
@@ -237,4 +246,9 @@ void	Msg::test(void)
 	std::cout << std::boolalpha << this->buffer_in << "  "<< is_complete((this->buffer_in), 512)<< std::noboolalpha << std::endl;
 	strcpy(this->buffer_out,"coucou c'est moi \n");
 	std::cout << std::boolalpha << this->buffer_out << "  "<< is_complete((this->buffer_out), 512)<< std::noboolalpha << std::endl;
+}
+
+int		Msg::getMessageSize()
+{
+	return (this->message_list.size());
 }

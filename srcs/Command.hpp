@@ -20,18 +20,18 @@ class Command
 		std::string	getCommand();
 		void		setParams(std::vector<std::string> params);
 		std::string	getParams();
-		void		execute(User user);
-		void		pass(User user, std::string prefix, std::vector<std::string> params);
-		void		nick(User user, std::string prefix, std::vector<std::string> params);
-		void		ping(User user, std::string prefix, std::vector<std::string> params);
-		void		user(User user, std::string prefix, std::vector<std::string> params);
-		void 		cap(User user, std::string prefix, std::vector<std::string> params);
-		void		join(User user, std::string prefix, std::vector<std::string> params);
+		void		execute(User &user);
+		void		pass(User &user, std::string prefix, std::vector<std::string> params);
+		void		nick(User &user, std::string prefix, std::vector<std::string> params);
+		void		ping(User &user, std::string prefix, std::vector<std::string> params);
+		void		user(User &user, std::string prefix, std::vector<std::string> params);
+		void 		cap(User &user, std::string prefix, std::vector<std::string> params);
+		void		join(User &user, std::string prefix, std::vector<std::string> params);
 		//void		registration(User user);
-		void		handleData(User user, const std::string& data);
-		void		parseLine(User user, std::string line);
+		void		handleData(User &user, const std::string& data);
+		void		parseLine(User &user, std::string line);
 
-		typedef void (Command::*CmdFunc)(User, std::string, std::vector<std::string>);
+		typedef void (Command::*CmdFunc)(User&, std::string, std::vector<std::string>);
 		static const CmdFunc cmdArr[];
 		std::string		buffer;
 	private:

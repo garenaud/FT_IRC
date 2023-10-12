@@ -52,7 +52,7 @@ std::string	Command::getParams()
 	return params;
 }
 
-void 	Command::execute(User user)
+void 	Command::execute(User &user)
 {
     static const std::string arr[] = {"JOIN", "CAP", "PASS", "PING", "NICK", "USER"};
     for (int i = 0; i < 6; i++)
@@ -66,7 +66,7 @@ void 	Command::execute(User user)
 	std::cout << this->command << " = Commande inconnue" << std::endl;
 }
 
-void	Command::ping(User user, std::string prefix, std::vector<std::string> params)
+void	Command::ping(User &user, std::string prefix, std::vector<std::string> params)
 {
  	if (params.size() >= 0)
 	{
@@ -81,7 +81,7 @@ void	Command::ping(User user, std::string prefix, std::vector<std::string> param
 	std::cout << "Pong envoye \n";
 }
 
-void	Command::nick(User user, std::string prefix, std::vector<std::string> params)
+void	Command::nick(User &user, std::string prefix, std::vector<std::string> params)
 {
 	(void)prefix;
 	if (params.size() != 1)
@@ -104,10 +104,16 @@ void	Command::nick(User user, std::string prefix, std::vector<std::string> param
 		return ;
 	}
 	user.setNick(nick);
+		if (user.getIsRegistered() == 1)
+	{
+		std::string err = ":server 001 " + user.getNick() + " :Welcome to the Internet Relay Network " + user.getNick() + "\r\n";
+		send(user.getFd(), err.c_str(), err.length(), 0);
+		user.setIsRegistered(2);
+	}	
 	std::cout << user.getFd() << " NICKNAME = " << user.getNick() << std::endl;
 }
 
-void	Command::user(User user, std::string prefix, std::vector<std::string> params)
+void	Command::user(User &user, std::string prefix, std::vector<std::string> params)
 {
 	(void)prefix;
 	if (params.size() != 4)
@@ -116,22 +122,24 @@ void	Command::user(User user, std::string prefix, std::vector<std::string> param
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
-/* 	std::string username = params[0];
-	std::string mode = params[1];
-	std::string hostname = params[2];
-	std::string realname = params[3]; */
 	user.setUser(params[0]);
 	user.setMode(params[1]);
 	user.setHostname(params[2]);
 	user.setRealname(params[3]);
 	std::cout << magentabg << user.getFd() << " " << "nickName = " << user.getNick() << " username = " << user.getUser() << " realname = " << user.getRealname() << " hostname = " << user.getHostname() << " hostname = " << user.getHostname() << reset << std::endl;
-	std::string welcome_msg = ":localhost 001 " + user.getNick() + " :Welcome to the Internet Relay Network " + user.getNick() + "\r\n";
-    send(user.getFd(), welcome_msg.c_str(), welcome_msg.length(), 0);
+	if (user.getIsRegistered() == 1)
+	{
+		std::string err = ":server 001 " + user.getNick() + " :Welcome to the Internet Relay Network " + user.getNick() + "\r\n";
+		send(user.getFd(), err.c_str(), err.length(), 0);
+		user.setIsRegistered(2);
+	}
+	server.displayUsers();
 }
 
-void	Command::pass(User user, std::string prefix, std::vector<std::string> params)
+void	Command::pass(User &user, std::string prefix, std::vector<std::string> params)
 {
 	(void)prefix;
+	std::cout << magenta << "isRegistered = " << user.getIsRegistered() << reset << std::endl;
 	if (params.size() != 1)
 	{
 		std::string err = ":server 461 " + user.getNick() + " PASS :Not enough parameters\r\n";
@@ -139,25 +147,30 @@ void	Command::pass(User user, std::string prefix, std::vector<std::string> param
 		return ;
 	}
 	std::cout << "serveur passwd = " << server.getPasswd() << " passwd = " << params[0] << std::endl;
-/* 	if (user.getIsRegistered() == true)
+ 	if (user.getIsRegistered() >= 1)
 	{
 		std::string err = ":server 462 " + user.getNick() + " :You may not reregister\r\n";
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		return ;
-	} */
+	} 
  	if (params[0] != server.getPasswd())
 	{
 		std::string err = ":server 464 " + user.getNick() + " :Password incorrect\r\n";
 		send(user.getFd(), err.c_str(), err.length(), 0);
+		server.del_from_pfds(server.getPfdsIndex(user.getFd()));
 		return ;
 	}
 	user.setPasswd(params[0]);
-	std::cout << "PASSWD = " << user.getPasswd() << std::endl;
+	if (user.getIsRegistered() == 1)
+	{
+		std::string err = ":server 001 " + user.getNick() + " :Welcome to the Internet Relay Network " + user.getNick() + "\r\n";
+		send(user.getFd(), err.c_str(), err.length(), 0);
+		user.setIsRegistered(2);
+	}
 }
 
-void	Command::cap(User user, std::string prefix, std::vector<std::string> params)
+void	Command::cap(User &user, std::string prefix, std::vector<std::string> params)
 {
-	std::cout << red << "je suis dans cap " << std::endl;
 	if (prefix.length() > 0)
 	{
 		std::cout << "PREFIX = " << prefix << std::endl;
@@ -197,7 +210,7 @@ void	Command::cap(User user, std::string prefix, std::vector<std::string> params
 	}
 }
 
-void	Command::join(User user, std::string prefix, std::vector<std::string> params)
+void	Command::join(User &user, std::string prefix, std::vector<std::string> params)
 {
 	if (prefix.length() > 0)
 	{
@@ -221,7 +234,7 @@ void	Command::join(User user, std::string prefix, std::vector<std::string> param
 	std::cout << "JOIN = " << channel << std::endl;
 }
 
-void Command::handleData(User user, const std::string& data) 
+void Command::handleData(User &user, const std::string& data) 
 {
     buffer += data;
     std::size_t pos;
@@ -233,7 +246,7 @@ void Command::handleData(User user, const std::string& data)
     }
 }
 
-void Command::parseLine(User user, std::string line)
+void Command::parseLine(User &user, std::string line)
 {
     std::istringstream iss(line);
     std::string prefix, command;

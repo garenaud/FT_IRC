@@ -5,6 +5,13 @@ User::User(int fd, std::string nick, std::string user)
 	this->fd = fd;
 	this->nick = nick;
 	this->user = user;
+	this->isRegistered = 0;
+}
+
+User::User(int fd)
+{
+	this->fd = fd;
+	this->isRegistered = 0;
 }
 
 User::~User() {}
@@ -33,6 +40,7 @@ std::string	User::getNick()
 void	User::setUser(std::string user)
 {
 	this->user = user;
+	checkRegistration();
 	std::cout << greenbg << "new username = " << this->user << " fd = " << this->fd << reset << std::endl;
 }
 
@@ -44,6 +52,7 @@ std::string	User::getUser()
 void User::setPasswd(std::string passwd)
 {
 	this->passwd = passwd;
+	checkRegistration();
 }
 
 std::string	User::getPasswd()
@@ -79,6 +88,28 @@ void User::setMode(std::string mode)
 std::string	User::getMode()
 {
 	return this->mode;
+}
+
+void User::checkRegistration() 
+{
+    if (!user.empty() && !nick.empty() && !passwd.empty()) {
+        this->isRegistered = 1;
+		std::cout << greenbg << "isRegistered = " << isRegistered << reset << std::endl;
+    }
+	else
+	{
+		this->isRegistered = 0;
+	}
+}
+
+void User::setIsRegistered(int isRegistered)
+{
+	this->isRegistered = isRegistered;
+}
+
+int User::getIsRegistered()
+{
+	return this->isRegistered;
 }
 
 std::ostream& operator<<(std::ostream& o, User &src) 

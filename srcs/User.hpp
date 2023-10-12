@@ -7,6 +7,7 @@ class User
 {
 	public:
 		User(int fd, std::string nick, std::string user);
+		User(int fd);
 		~User();
 		void		setFd(int fd);
 		int			getFd();
@@ -22,8 +23,9 @@ class User
 		std::string	getHostname();
 		void		setMode(std::string mode);
 		std::string	getMode();
-/* 		void		setIsRegistered();
-		bool		getIsRegistered(); */
+ 		void		setIsRegistered(int isRegistered);
+		int		getIsRegistered();
+		void 		checkRegistration();
 
 	private:
 		User();
@@ -34,7 +36,7 @@ class User
 		std::string	realname;
 		std::string	hostname;
 		std::string mode;
-		bool	isRegistered;
+		int	isRegistered;
 };
 
 std::ostream& operator<<(std::ostream& o, User const &src);

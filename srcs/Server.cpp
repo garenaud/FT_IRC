@@ -94,12 +94,16 @@ void    Server::add_to_pfds(int newfd)
     data.events = POLLIN;
 
     this->pfds.push_back(data);
+    std::cout << "add_to_pfds: new connection from " << newfd << std::endl;
 }
 
 void    Server::del_from_pfds(int index)
 {// a voir, manque test erreur
-if (index < (int)this->pfds.size())
-    this->pfds.erase(this->pfds.begin() + index);
+    if (index < (int)this->pfds.size())
+    {
+        removeUser(this->pfds[index].fd);
+        this->pfds.erase(this->pfds.begin() + index);
+    }
 }
 
 void    Server::setListeningSocket()
@@ -126,7 +130,7 @@ void    Server::handleNewConnection()
     else
     {
         add_to_pfds(this->accepted_socket);
-        addUser(accepted_socket, "defaultNick", "defaultUser");
+        addUser(this->accepted_socket);
         //std::cout << newUser << std::endl;
         //std::cout << users[0];
         const char* c =this->remoteIP.c_str();
@@ -170,65 +174,14 @@ void Server::handleClient(Msg &aMess, int index)
         // Convertit le buffer en une chaîne C++ pour faciliter la manipulation
        // std::cout << green;
         std::string received_data(this->buffer, nbytes);
+        std::cout << redbg << "Received data: " << received_data << reset << std::endl;
         Command cmd(*this);
-        cmd.handleData(users[getUserIndex(sender_fd)], received_data);
-        //cmd.parseLine(users[getUserIndex(sender_fd)], received_data);
-        // std::cout << "\n" << magenta << received_data << reset << std::endl;
-
-        // commence la commande, faudra remoplacer les champs par le resultat du parsing
-        // le premier parametre est le serveur, le deuxieme le prefixe, le troisieme la commande, 
-        // le quatrieme les parametres
-/*         Command cmd(*this, msg.prefix, msg.command, std::vector<std::string>());
-        cmd.execute(users[getUserIndex(sender_fd)]); */
-
-        // Vérifie si CAP LS a été envoyé par le client
-        /* if (received_data.find("CAP LS") != std::string::npos)
+        //cmd.handleData(users[getUserIndex(sender_fd)], received_data);
+       while(aMess.getMessageSize() > 0)
         {
-            std::string cap_end = ":localhost CAP * LS :multi-prefix sasl\r\n";
-            send(sender_fd, cap_end.c_str(), cap_end.length(), 0);
+            cmd.parseLine(users[getUserIndex(sender_fd)], aMess.getMessage());
+            std::cout << red << aMess.getMessageSize() << reset << std::endl;
         }
-        if (received_data.find("CAP REQ :multi-prefix") != std::string::npos)
-        {
-            std::string cap_end = ":localhost CAP * ACK :multi-prefix\r\n";
-            send(sender_fd, cap_end.c_str(), cap_end.length(), 0);
-        }
-        if (received_data.find("CAP END") != std::string::npos)
-        {
-            std::string cap_end = ":localhost CAP * ACK :none\r\n";
-            send(sender_fd, cap_end.c_str(), cap_end.length(), 0);
-            //std::cout << ":localhost CAP * ACK :none" << std::endl;
-        }
-        if (received_data.find("JOIN") != std::string::npos)
-        {
-            std::cout << "join..." << std::endl;
-        }
-        if (received_data.find("PING") != std::string::npos)
-        {
-            std::string pong_msg = "PONG :localhost\r\n";
-            send(pfds[index].fd, pong_msg.c_str(), pong_msg.length(), 0);
-            std::cout << "PING RECU" << std::endl;
-        }
-        if (received_data.find("PONG") != std::string::npos)
-        {
-            std::string pong_msg = "PONG :localhost\r\n";
-            send(pfds[index].fd, pong_msg.c_str(), pong_msg.length(), 0);
-            std::cout << "PONG RECU" << std::endl;
-        }
-
-        std::cout << reset;
-    if (received_data.find("NICK") != std::string::npos && received_data.find("USER") != std::string::npos)
-    {
-        // Extrait les informations NICK et USER
-        std::string nick = received_data;
-        std::string user = received_data;
-
-        // Ajoute l'utilisateur à la liste
-        addUser(pfds[index].fd, nick, user);
-        // ajout Gaetan
-        std::string welcome_msg = ":localhost 001 " + nick + " :Welcome to the Internet Relay Network " + nick + "\r\n";
-        send(sender_fd, welcome_msg.c_str(), welcome_msg.length(), 0);
-        //
-    }*/
             // We got some good data from a client
             for(int j = 0; j < (int)this->pfds.size(); j++)
             {
@@ -251,6 +204,7 @@ void    Server::run()
 {
     setListeningSocket();
       Msg     aMess;///
+      Command cmd(*this);
      //  Msg *aMess = NULL;
     for (;;)
     {
@@ -276,13 +230,22 @@ void    Server::run()
     } 
 }
 
-void Server::addUser(int fd, const std::string& nick, const std::string& user)
+void Server::addUser(int fd)
 {
-    User newUser(fd, nick, user);
+    User newUser(fd);
     users.push_back(newUser);
     for (std::size_t i = 0; i < users.size(); ++i)
     {
         std::cout << yellow << "FD = " << users[i].getFd() << " NICKNAME = " << users[i].getNick() << " USERNAME = " << users[i].getUser() << reset << std::endl;
+    }
+}
+
+void Server::removeUser(int fd)
+{
+    int index = getUserIndex(fd);
+    if (index != -1)
+    {
+        users.erase(users.begin() + index);
     }
 }
 
@@ -317,7 +280,27 @@ int     Server::getUserIndex(int fd)
     return -1;
 }
 
+int     Server::getPfdsIndex(int fd)
+{
+    for (std::size_t i = 0; i < pfds.size(); ++i)
+    {
+        if (pfds[i].fd == fd)
+        {
+            return i;
+        }
+    }
+    return -1;
+}
+
 std::string Server::getPasswd()
 {
     return this->passwd;
+}
+
+void    Server::displayUsers()
+{
+    for (std::size_t i = 0; i < users.size(); ++i)
+    {
+        std::cout << yellowbg << " FD = " << users[i].getFd() << " NICKNAME = " << users[i].getNick() << " USERNAME = " << users[i].getUser() << " REALNAME = " << users[i].getRealname() << reset << std::endl;
+    }
 }

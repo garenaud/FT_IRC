@@ -22,6 +22,7 @@
 #include <vector>
 
 class User;
+class Command;
 
 class Server
 {
@@ -46,11 +47,14 @@ class Server
 		void	handleNewConnection();
 		void	handleClient(Msg &aMess,int index);
 		void	run();
-		void	addUser(int fd, const std::string& nick, const std::string& user);
+		void	addUser(int fd);
+		void	removeUser(int fd);
 
 		void	sendPing(int client_fd);
 		bool	isNickAvailable(const std::string& nick);
+		int 	getPfdsIndex(int fd);
 		int		getUserIndex(int fd);
+		void 	displayUsers();
 
 	private:
 		int port;
