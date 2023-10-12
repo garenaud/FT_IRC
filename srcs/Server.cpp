@@ -286,6 +286,6 @@ void    Server::displayUsers()
 {
     for (size_t i = 0; i < users.size(); ++i)
     {
-        std::cout << yellowbg << " FD = " << users[i].getFd() << " NICKNAME = " << users[i].getNick() << " USERNAME = " << users[i].getUser() << " REALNAME = " << users[i].getRealname() << reset << std::endl;
+        std::cout << yellowbg << "FD = " << users[i].getFd() << "\t NICKNAME = " << users[i].getNick() << "\t USERNAME = " << users[i].getUser() << "\t REALNAME = " << users[i].getRealname() << reset << std::endl;
     }
 }
