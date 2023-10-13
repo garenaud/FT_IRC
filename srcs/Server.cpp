@@ -33,7 +33,7 @@ int     Server::getPort()
 }
 
 void    *Server::get_in_addr(struct sockaddr *sa)
-{
+{// invariant
     if (sa->sa_family == AF_INET) {
         return &(reinterpret_cast<struct sockaddr_in*>(sa)->sin_addr);
     }
@@ -41,7 +41,7 @@ void    *Server::get_in_addr(struct sockaddr *sa)
 }
 
 void    Server::setHint(int family, int type, int flag)
-{
+{// invariant
     std::memset(&this->hints, 0, sizeof(this->hints));
     this->hints.ai_family = family;
     this->hints.ai_socktype = type;
@@ -49,19 +49,20 @@ void    Server::setHint(int family, int type, int flag)
 }
 
 int     Server::get_listener_socket(void)
-{
+{// invariant
     int listener;     // Listening socket descriptor
     int yes=1;        // For setsockopt() SO_REUSEADDR, below
     int rv;
 
     struct addrinfo *ai, *p;
     setHint(AF_UNSPEC, SOCK_STREAM, AI_PASSIVE);
-
+    // voir si possible amelioration
     std::string s;
     std::stringstream out;
     out << getPort();
     s = out.str();
     const char * port = s.c_str();
+
     if ((rv = getaddrinfo(NULL, port, &this->hints, &ai)) != 0) {
         std::cerr << "selectserver: " << gai_strerror(rv) << std::endl;
         exit(1);
@@ -87,7 +88,7 @@ int     Server::get_listener_socket(void)
 }
 
 void    Server::add_to_pfds(int newfd)
-{//a voir
+{// invariant: doute ? si pas adduser dedans ? voir 100
     struct pollfd   data;
 
     data.fd = newfd;
@@ -97,13 +98,13 @@ void    Server::add_to_pfds(int newfd)
 }
 
 void    Server::del_from_pfds(int index)
-{// a voir, manque test erreur
+{// MODIFIED: removeUser(this->pfds[index].fd); dans if
 if (index < (int)this->pfds.size())
     this->pfds.erase(this->pfds.begin() + index);
 }
 
 void    Server::setListeningSocket()
-{// a voir..
+{// invariant: doute ? si pas adduser dedans ? voir 100
     this->listener_socket = get_listener_socket();
     if (this->listener_socket == -1)
     {
@@ -137,17 +138,14 @@ void    Server::handleNewConnection()
 }
 
 void Server::handleClient(Msg &aMess, int index)
-{
-    // ajout de memset
-    memset(this->buffer, 0, sizeof(this->buffer)); //051023
+{// ?LOGIC ERROR 227 sembla avoir ete corrige ????
+
+    memset(this->buffer, 0, sizeof(this->buffer));
     int nbytes = recv(pfds[index].fd, this->buffer, sizeof(this->buffer), 0);
     int sender_fd = pfds[index].fd;
+
     // partie modifiee
- //   Msg     aMess;
-   // Msg *aMess = new Msg;
-    aMess.initialize(sender_fd, "user", this->buffer, nbytes);//initialize(this->accepted_socket, "user", this->buffer, nbytes);
-    //aMess.view();
-    //aMess.split("\r\n");
+    aMess.initialize(sender_fd, "user", this->buffer, nbytes);// MODIFIE users[getUserIndex(sender_fd)]
     aMess.split2("\r\n");
     // fin partie modifiee
     if (nbytes <= 0)
@@ -155,7 +153,7 @@ void Server::handleClient(Msg &aMess, int index)
         // Got error or connection closed by client
         if (nbytes == 0)
         {
-            // Connection closed
+            // Connection closed, doute si il fasut enlever client ici aussi
             std::cerr << "pollserver: socket " << sender_fd << " hung up\n";
         }
         else
@@ -173,10 +171,10 @@ void Server::handleClient(Msg &aMess, int index)
         // std::cout << "\n" << magenta << received_data << reset << std::endl;
 
         // commence la commande, faudra remoplacer les champs par le resultat du parsing
-        // le premier parametre est le serveur, le deuxieme le prefixe, le troisieme la commande, 
+        // le premier parametre est le serveur, le deuxieme le prefixe, le troisieme la commande,
         // le quatrieme les parametres
-        Command cmd(*this, msg.prefix, msg.command, std::vector<std::string>());
-        cmd.execute(users[getUserIndex(sender_fd)]);
+ //       Command cmd(*this, msg.prefix, msg.command, std::vector<std::string>());
+   //     cmd.execute(users[getUserIndex(sender_fd)]);
 
         // Vérifie si CAP LS a été envoyé par le client
         if (received_data.find("CAP LS") != std::string::npos)
@@ -249,8 +247,8 @@ void Server::handleClient(Msg &aMess, int index)
 void    Server::run()
 {
     setListeningSocket();
-      Msg     aMess;///
-     //  Msg *aMess = NULL;
+      Msg     aMess;
+
     for (;;)
     {
         int poll_count = poll(&pfds[0], this->pfds.size(), -1);
@@ -258,7 +256,7 @@ void    Server::run()
             perror("poll");
             exit(1);
         }
-         for(int i = 0; i < (int)this->pfds.size(); i++)
+         for(size_t i = 0; i < this->pfds.size(); i++)
          {
               if (this->pfds[i].revents & POLLIN)
               {
@@ -268,7 +266,7 @@ void    Server::run()
                   }
                   else
                   {
-                      handleClient(aMess,i);///
+                      handleClient(aMess,i);
                   }
               }
          }
@@ -293,7 +291,7 @@ void Server::sendPing(int client_fd)
 }
 
 bool    Server::isNickAvailable(const std::string& nick)
-{
+{//
     for (std::size_t i = 0; i < users.size(); ++i)
     {
         if (users[i].getNick() == nick)
@@ -305,7 +303,7 @@ bool    Server::isNickAvailable(const std::string& nick)
 }
 
 int     Server::getUserIndex(int fd)
-{
+{//
     for (std::size_t i = 0; i < users.size(); ++i)
     {
         if (users[i].getFd() == fd)

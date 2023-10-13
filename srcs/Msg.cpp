@@ -84,9 +84,7 @@ int		Msg::initialize(int acc_socket, std::string user, char * buff, int recv_siz
 	for (size_t i=0; i < 512; i++)
 	{
 		this->aMessage.buffer_in[i] = buff[i];
-		//std::cout << yellow << this->aMessage.buffer_in[i] << reset;
 	}
-	//std::cout <<std::endl;
 	this->received_message.push_back(this->aMessage);
 	incomingCount++;//
 	return (0);
@@ -116,16 +114,14 @@ void	Msg::split2(std::string sep)
 		//std::cout << red << "\nmessage recu \t" <<tmp<< reset << std::endl;
 		//std::string	tmp1 = ""; // ajout 0910
 		std::string tmp1(this->aMessage.buffer.begin(), this->aMessage.buffer.end());
-	//	size_t	occurence = 0;
-	//	size_t	pos = 0;
 		size_t	found;
 		while ((found = tmp.find(sep)) != std::string::npos)
 		{
-			tmp1.append(tmp.substr(0, found));//
-			this->aMessage.buffer.clear();//
+			tmp1.append(tmp.substr(0, found));
+			this->aMessage.buffer.clear();
 			//tmp1 = tmp.substr(0, found);//
 			std::cout << green << "\t\t\t" << tmp1 << std::endl;
-			tmp.replace(0, found+2, "");// pb ici
+			tmp.replace(0, found+2, "");
 			// transfer ok (lldb)
 			this->uniqueMessage.accepted_socket = this->aMessage.accepted_socket;
 			this->uniqueMessage.userID = this->aMessage.userID;
@@ -134,7 +130,6 @@ void	Msg::split2(std::string sep)
 			this->message_list.push_back(this->uniqueMessage);
 			tmp1 = "";
 		}
-		// trf du reste sur le buffer (pas sur)
 		for (size_t i = 0; i < tmp.length(); ++i)
 		{
 			this->aMessage.buffer.push_back(tmp[i]);
@@ -151,7 +146,7 @@ void	Msg::split2(std::string sep)
 
 
 void	Msg::split(std::string sep)
-{
+{// deprecated
 
 	std::string tmp(received_message[0].buffer_in);
 	tmp = tmp.substr(0, this->aMessage.recv_size); // **
