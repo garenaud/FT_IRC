@@ -54,7 +54,7 @@ std::string	Command::getParams()
 
 void 	Command::execute(User &user)
 {
-    static const std::string arr[] = {"JOIN", "CAP", "PASS", "PING", "PONG", "NICK", "USER", "WHO"};
+    static const std::string arr[] = {"CAP", "JOIN", "PASS", "PING", "PONG", "NICK", "USER", "WHO"};
     for (size_t i = 0; i < 8; i++)
     {
         if (this->command == arr[i])
