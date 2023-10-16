@@ -62,9 +62,10 @@ class Channel
 		void	setPassword(std::string password);
 
 		// others
-		bool	isUser(User user);
-		bool	isChanops(User user);
-		bool	isKicked(User user);
+		bool		isUser(User user);
+		bool		isChanops(User user);
+		bool		isKicked(User user);
+		std::string	getList();
 
 		void	addUser(User user);
 		void	inviteUser(User &user, User chanop);

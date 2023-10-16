@@ -226,7 +226,7 @@ void	Command::cap(User &user, std::string prefix, std::vector<std::string> param
 void	Command::join(User &user, std::string prefix, std::vector<std::string> params)
 {
 	(void) prefix;
-	if (params.size() != 2)
+	if (params.size() < 1)
 	{
 		std::string err = ":server 461 " + user.getNick() + " JOIN :Not enough parameters\r\n";
 		send(user.getFd(), err.c_str(), err.length(), 0);
@@ -239,7 +239,6 @@ void	Command::join(User &user, std::string prefix, std::vector<std::string> para
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
-	/// bastien test /////////
 	if (server.getChannel(channel) == nullptr)
 	{
 		server.createChannel(channel, user);
@@ -250,16 +249,44 @@ void	Command::join(User &user, std::string prefix, std::vector<std::string> para
 		this->_channel = server.getChannel(channel);
 		if (!this->_channel->getModeI() || (this->_channel->getModeI() && user.isInvited(this->_channel->getName())))
 		{
+			if (this->_channel->getModeI() && !user.isInvited(this->_channel->getName()))
+			{
+				std::string ERR_INVITEONLYCHAN = "server 473 " + user.getNick() + " " + this->_channel->getName() + " :Cannot join channel (+i)\r\n";
+				send(user.getFd(), ERR_INVITEONLYCHAN.c_str(), ERR_INVITEONLYCHAN.length(), 0);
+				return;
+			}
 			if (!this->_channel->getModeK() || (this->_channel->getModeK() && (params[1] == this->_channel->getPassword())))
 			{
-				if (this->_channel->getSize() < this->_channel->getMax())
-					this->_channel->addUser(user);
+				if (this->_channel->getModeK() && (params[1] != this->_channel->getPassword()))
+				{
+					std::string ERR_BADCHANNELKEY  = "server 475 " + user.getNick() + " " + this->_channel->getName()  + " :Cannot join channel (+k)\r\n";
+					send(user.getFd(), ERR_BADCHANNELKEY.c_str(), ERR_BADCHANNELKEY.length(), 0);
+					return;
+				}
+
+				if (this->_channel->getSize() == this->_channel->getMax())
+				{
+					std::string ERR_CHANNELISFULL = "server 471 " + user.getNick() + " " + this->_channel->getName()  + " :Cannot join channel (+l)\r\n";
+					send(user.getFd(), ERR_CHANNELISFULL.c_str(), ERR_CHANNELISFULL.length(), 0);
+					return;
+				}
+				if (this->_channel->isKicked(user))
+				{
+					std::string ERR_BANNEDFROMCHAN = "server 474 " + user.getNick() + " " + this->_channel->getName() + " :Cannot join channel after being kicked\r\n";
+					send(user.getFd(), ERR_BANNEDFROMCHAN.c_str(), ERR_BANNEDFROMCHAN.length(), 0);
+					return;
+				}
+				this->_channel->addUser(user);
 			}
 		}
 	}
-	/////////////////////////////
-	std::string join_msg = ":" + user.getNick() + " JOIN " + channel + "\r\n";
-	send(user.getFd(), join_msg.c_str(), join_msg.length(), 0);
+	std::string createMessage = ":" + user.getNick() + " JOIN " + this->_channel->getName() + "\r\n";
+	std::string topicMessage = ":" + user.getNick() + " " + this->_channel->getName() + " : " + this->_channel->getTopic() + "\r\n";
+	std::string listUsersMessage = ":" + user.getNick() + " " + this->_channel->getName() + " : " + this->_channel->getList() + "\r\n";
+	send(user.getFd(), createMessage.c_str(), createMessage.length(), 0);
+	send(user.getFd(), topicMessage.c_str(), topicMessage.length(), 0);
+	send(user.getFd(), listUsersMessage.c_str(), listUsersMessage.length(), 0);
+
 	std::cout << "JOIN = " << channel << std::endl;
 }
 

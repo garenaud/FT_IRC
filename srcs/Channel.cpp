@@ -236,6 +236,19 @@ bool	Channel::isKicked(User user)
 		return false;
 }
 
+std::string	Channel::getList()
+{
+	std::string res;
+	for (size_t i = 0; i < static_cast<size_t>(this->_users.size()); i++)
+	{
+		if (this->isChanops(_users[i]))
+			res += "@";
+		res += (_users[i].getUser() + " "); 
+	}
+	return res;
+}
+
+
 void	Channel::addUser(User user)
 {
 	this->_users.push_back(user);
