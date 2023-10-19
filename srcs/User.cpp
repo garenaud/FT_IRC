@@ -162,7 +162,6 @@ bool	User::isInvited(std::string channelName) const
 	return false;
 }
 
-<<<<<<< HEAD
 void	User::addJoinedChannel(std::string channelName)
 {
 	this->joinedChannels.push_back(channelName);
@@ -199,7 +198,7 @@ void	User::sendAllJoinedChannels(std::string msg) const
 			send(fd, msg.c_str(), msg.length(), 0);
 		}
 	}
-=======
+}
 void	User::addOperatorChannel(std::string channelName)
 {
 	this->operatorChannels.push_back(channelName);
@@ -223,5 +222,4 @@ bool	User::isOperator(std::string channelName) const
 			return true;
 	}
 	return false;
->>>>>>> ce8a8cb2dc02fd177fda193097c364b8ced124cc
 }

@@ -60,13 +60,8 @@ class Server
 		User	*getUserByNick(const std::string& nick);
 		int 	getPfdsIndex(int fd);
 		int		getUserIndex(int fd);
-		User    *getUserByNick(const std::string& nick);
 		void 	displayUsers();
-<<<<<<< HEAD
 		std::vector<User>	getUser();
-=======
-		User    *getUserByNick(const std::string& nick);
->>>>>>> ce8a8cb2dc02fd177fda193097c364b8ced124cc
 
 		Channel	*getChannel(std::string channelName);
 		void	createChannel(std::string channelName, User user);
