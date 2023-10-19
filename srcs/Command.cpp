@@ -13,15 +13,16 @@ Command::Command(Server &server)
 {
 }
 
-const Command::CmdFunc Command::cmdArr[] = {&Command::cap, 
-											&Command::join, 
-											&Command::pass, 
-											&Command::ping, 
-											&Command::pong, 
-											&Command::nick, 
-											&Command::user, 
-											&Command::who, 
-											&Command::mode};
+const Command::CmdFunc Command::cmdArr[] = {&Command::cap,
+											&Command::join,
+											&Command::pass,
+											&Command::ping,
+											&Command::pong,
+											&Command::nick,
+											&Command::user,
+											&Command::who,
+											&Command::mode,
+                                            &Command::privmsg};
 Command::~Command() {}
 
 void	Command::sendChannelUsers(std::vector<User> channelUsers, std::string msg) const
@@ -69,8 +70,8 @@ std::string	Command::getParams()
 void 	Command::execute(User &user)
 {
 	std::cout << this->command << std::endl;
-    static const std::string arr[] = {"CAP", "JOIN", "PASS", "PING", "PONG", "NICK", "USER", "WHO", "MODE"};
-    for (size_t i = 0; i < 9; i++)
+    static const std::string arr[] = {"CAP", "JOIN", "PASS", "PING", "PONG", "NICK", "USER", "WHO", "MODE", "PRIVMSG"};
+    for (size_t i = 0; i < 10; i++)
     {
         if (this->command == arr[i])
         {
@@ -368,7 +369,7 @@ void	Command::join(User &user, std::string prefix, std::vector<std::string> para
 		}
 		else
 		{
-			if (this->_channel->getModeK() && (params.size() < 2 || params[1] != this->_channel->getPassword())) 
+			if (this->_channel->getModeK() && (params.size() < 2 || params[1] != this->_channel->getPassword()))
 			{
 				std::string ERR_BADCHANNELKEY  = "475 " + user.getNick() + " " + this->_channel->getName()  + " :Cannot join channel (+k)\r\n";
 				send(user.getFd(), ERR_BADCHANNELKEY.c_str(), ERR_BADCHANNELKEY.length(), 0);
@@ -689,7 +690,7 @@ bool	checkPassword(std::string passWord)
 	for (size_t i = 0; i < passWord.length(); ++i)
 	{
 		char c = passWord[i];
-		if (!isalnum(c) && !ispunct(c)) 
+		if (!isalnum(c) && !ispunct(c))
 			return false;
 		if (isspace(c))
 			return false;

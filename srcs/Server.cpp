@@ -337,8 +337,11 @@ void	Server::rmChannel(std::string channelName)
 {
 	this->channels.erase(channelName);
 }
+<<<<<<< HEAD
 
 std::vector<User>	Server::getUser()
 {
     return this->users;
 }
+=======
+>>>>>>> f1e53d8cafa0861110dd821519b8657b20729341
