@@ -69,60 +69,103 @@ void 	Command::execute(User &user)
 void	Command::ping(User &user, std::string prefix, std::vector<std::string> params)
 {
 	(void)prefix;
- 	if (params.size() >= 0)
+	std::string pong;
+	if (params.size() > 0) 
 	{
-		//std::cout << "PING = " << params[0] << std::endl;
+		//std::cout << "params = " << getParams() << std::endl;
+		pong = "PONG " + params[0] + "\r\n";
 	}
-	std::string pong = "PONG :localhost 6667\r\n";
+	else 
+	{
+		pong = "PONG :localhost\r\n";
+	}
 	send(user.getFd(), pong.c_str(), pong.length(), 0);
-	//std::cout << "Pong envoye \n";
 }
 
 void	Command::pong(User &user, std::string prefix, std::vector<std::string> params)
 {
 	(void)prefix;
- 	if (params.size() > 0)
+	(void)params;
+	(void)user;
+/*  	if (params.size() > 0)
 	{
-		std::cout << "PONG " << params[0] << std::endl;
 		std::string pong = "PONG " + params[0] + "\r\n";
 		send(user.getFd(), pong.c_str(), pong.length(), 0);
 	}
 	std::string pong = "PONG :localhost 6667\r\n";
-	send(user.getFd(), pong.c_str(), pong.length(), 0);
+	send(user.getFd(), pong.c_str(), pong.length(), 0); */
 	//std::cout << "Pong envoye \n";
 }
 
 void	Command::nick(User &user, std::string prefix, std::vector<std::string> params)
 {
 	(void)prefix;
+	std::string oldNick = user.getNick();
+	std::string nick = params[0];
 	if (params.size() != 1)
 	{
-		std::string err = ":server 461 " + user.getNick() + " NICK :Not enough parameters\r\n";
+		std::cout << "params = " << getParams() << std::endl;
+		std::string err = ":server 461 " + nick + " NICK :Not enough parameters\r\n";
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
-	std::string nick = params[0];
 	if (nick.length() > 9)
 	{
-		std::string err = ":server 432 " + user.getNick() + " NICK :Erroneous nickname\r\n";
+		std::string err = ":server 432 " + nick + " NICK :Erroneous nickname\r\n";
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
-	    int counter = 1;
+	//int counter = 1;
     std::string originalNick = nick;
-
-    while (!server.isNickAvailable(nick))
+    if (!server.isNickAvailable(nick))
     {
-        nick = originalNick + std::to_string(counter);
-        counter++;
+		/* case 433:
+		return target + ERR_NICKNAMEINUSE(arg1);
+		std::string ERR_NICKNAMEINUSE(std::string nick) { return nick + " :Nickname is already in use"; }
+ */		std::string err = ":server 433 * " + nick + " :Nickname is already in use \r\n";
+		//std::string err = user.getNick() + " " + nick + " :Nickname is already in use \r\n";
+		std::cout << cyan << "nick already in use = " << err << reset << std::endl;
+		send(user.getFd(), err.c_str(), err.length(), 0);
+		//user.setNick(oldNick);
+		return ;
+/* 		while (!server.isNickAvailable(nick))
+		{
+			nick = originalNick + std::to_string(counter);
+			counter++;
+		}
+		user.setNick(nick);
+		std::string createMessage =  ":server NICK :" + nick + "\r\n"; */
+		//std::string createMessage = ":" + oldNick + "!" + user.getUser() + "@" + user.getHostname() + " NICK " + nick + "\r\n";
+		//std::cout << "createMessage = " << createMessage << std::endl;
+		//sendToAllJoinedChannel(user, createMessage);
+		//send(user.getFd(), createMessage.c_str(), createMessage.length(), 0);
+		//return ;
     }
-	user.setNick(nick);
-		if (user.getIsRegistered() == 1)
+	if (server.isNickAvailable(nick) && user.getIsRegistered() == 0)
+	{
+		user.setNick(nick);
+		user.checkRegistration();
+		std::string createMessage = ":" + oldNick + "!" + user.getUser() + "@" + user.getHostname() + " NICK " + user.getNick() + "\r\n";
+		std::cout << "createMessage = " << createMessage << "register = " << user.getIsRegistered() << std::endl;
+		send(user.getFd(), createMessage.c_str(), createMessage.length(), 0);
+	}
+
+/* 	std::string createMessage = ":" + oldNick + "!" + user.getUser() + "@" + user.getHostname() + " NICK " + nick + "\r\n";
+	std::cout << "createMessage = " << createMessage << std::endl;
+	send(user.getFd(), createMessage.c_str(), createMessage.length(), 0); */
+	if (user.getIsRegistered() == 1)
 	{
 		std::string err = ":server 001 " + user.getNick() + " :Welcome to the Internet Relay Network " + user.getNick() + "\r\n";
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		user.setIsRegistered(2);
 	}	
+	else if (user.getIsRegistered() == 2) //(!prefix.empty())
+	{
+		std::string createMessage = ":" + oldNick + "!" + user.getUser() + "@" + user.getHostname() + " NICK " + user.getNick() + "\r\n";
+		std::cout << "createMessage = " << createMessage << std::endl;
+		send(user.getFd(), createMessage.c_str(), createMessage.length(), 0);
+		//sendToAllJoinedChannel(user, createMessage);
+	}
 	//std::cout << user.getFd() << " NICKNAME = " << user.getNick() << std::endl;
 }
 
@@ -342,4 +385,32 @@ void	Command::who(User &user, std::string prefix, std::vector<std::string> param
 	(void)params;
 	(void)user;
 	server.displayUsers();
+}
+
+void    Command::sendChannelUsers(std::vector<User> channelUsers, std::string msg) const
+{
+    for (int i = 0; i < static_cast<int>(channelUsers.size()); i++)
+        send(channelUsers[i].getFd(), msg.c_str(), msg.length(), 0);
+}
+
+void	Command::sendToAllJoinedChannel(User &user, std::string msg)
+{
+	if (user.getJoinedChannels().size() == 0)
+	{
+		//pour le debug (du moment qu'on a pas encore de channel) a remplacer par le return
+		for (size_t i = 0; i < server.getUser().size(); ++i)
+		{
+			send(server.getUser()[i].getFd(), msg.c_str(), msg.length(), 0);
+		}
+		//return;
+	}
+	else
+	{
+		std::vector<std::string>::const_iterator it;
+		for (it = user.getJoinedChannels().begin(); it != user.getJoinedChannels().end(); ++it)
+		{
+			std::vector<User> channelUsers = server.getChannel(*it)->getUsers();
+			sendChannelUsers(channelUsers, msg);
+		}
+	}
 }

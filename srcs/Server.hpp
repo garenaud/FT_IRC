@@ -57,9 +57,11 @@ class Server
 
 		void	sendPing(int client_fd);
 		bool	isNickAvailable(const std::string& nick);
+		User	*getUserByNick(const std::string& nick);
 		int 	getPfdsIndex(int fd);
 		int		getUserIndex(int fd);
 		void 	displayUsers();
+		std::vector<User>	getUser();
 
 		Channel	*getChannel(std::string channelName);
 		void	createChannel(std::string channelName, User user);

@@ -33,6 +33,8 @@ class Command
 		//void		registration(User user);
 		void		handleData(User &user, const std::string& data);
 		void		parseLine(User &user, std::string line);
+		void        sendChannelUsers(std::vector<User> channelUsers, std::string msg) const;
+		void		sendToAllJoinedChannel(User &user, std::string msg);
 
 		typedef void (Command::*CmdFunc)(User&, std::string, std::vector<std::string>);
 		static const CmdFunc cmdArr[];

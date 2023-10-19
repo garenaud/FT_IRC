@@ -164,12 +164,12 @@ void Server::handleClient(Msg &aMess, int index)
     else
     {
         std::string received_data(this->buffer, nbytes);
-        //std::cout << redbg << "Received data: " << received_data << reset << std::endl;
+        std::cout << redbg << "Received data: " << received_data << reset << std::endl;
         Command cmd(*this);
         while(aMess.getMessageSize() > 0)
         {
             cmd.parseLine(users[getUserIndex(sender_fd)], aMess.getMessage());
-            //std::cout << red << aMess.getMessageSize() << reset << std::endl;
+            //std::cout << red << aMess.getMessage() << reset << std::endl;
         }
         for(int j = 0; j < (int)this->pfds.size(); j++)
         {
@@ -284,9 +284,10 @@ std::string Server::getPasswd()
 
 void    Server::displayUsers()
 {
+    std::cout << yellow << "Nombre d'utilisateurs connectes : " << users.size() << reset << std::endl;
     for (size_t i = 0; i < users.size(); ++i)
     {
-        std::cout << yellowbg << "FD = " << users[i].getFd() << "\t NICKNAME = " << users[i].getNick() << "\t USERNAME = " << users[i].getUser() << "\t REALNAME = " << users[i].getRealname() << reset << std::endl;
+        std::cout << yellowbg << "FD = " << users[i].getFd() << "\t NICKNAME = " << users[i].getNick() << "\t USERNAME = " << users[i].getUser() << "\t REALNAME = " << users[i].getRealname() << "\t HOSTNAME = " << users[i].getHostname() <<  reset << std::endl;
     }
 }
 
@@ -309,4 +310,19 @@ void	Server::createChannel(std::string channelName, User user)
 void	Server::rmChannel(std::string channelName)
 {
 	this->channels.erase(channelName);
+}
+
+User    *Server::getUserByNick(const std::string& nick)
+{
+    for (size_t i = 0; i < this->users.size(); ++i)
+    {
+        if (this->users[i].getNick() == nick)
+            return &(this->users[i]);
+    }
+    return nullptr;
+}
+
+std::vector<User>	Server::getUser()
+{
+    return this->users;
 }

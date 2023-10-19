@@ -32,6 +32,10 @@ class User
 
 		void		addInvitedChannel(std::string channelName);
 		bool		isInvited(std::string channelName) const;
+		void		addJoinedChannel(std::string channelName);
+		void		removeJoinedChannel(std::string channelName);
+		void 		sendAllJoinedChannels(std::string msg) const;
+		std::vector<std::string>	getJoinedChannels() const;
 
 	private:
 		const int	fd;
@@ -44,6 +48,7 @@ class User
 		int	isRegistered;
 
 		std::vector<std::string>	invitedChannels;
+		std::vector<std::string>	joinedChannels;
 };
 
 std::ostream& operator<<(std::ostream& o, User const &src);

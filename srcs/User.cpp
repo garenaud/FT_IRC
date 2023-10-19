@@ -1,11 +1,11 @@
 #include "User.hpp"
 #include "Server.hpp"
 
-User::User(int fd, std::string nick, std::string user) : fd(fd), nick(nick), user(user), isRegistered(0)
+User::User(int fd, std::string nick, std::string user) : fd(fd), nick(nick), user(user), passwd("none"), realname("none"), hostname("none"), mode("0"), isRegistered(0) 
 {
 }
 
-User::User(int fd) : fd(fd), isRegistered(0)
+User::User(int fd) : fd(fd), nick("none"), user("none"), passwd("none"), realname("none"), hostname("none"), mode("0"), isRegistered(0)
 {
 }
 
@@ -111,7 +111,7 @@ std::string	User::getMode()
 
 void User::checkRegistration() 
 {
-    if (!user.empty() && !nick.empty() && !passwd.empty()) 
+    if (this->getNick() != "none" && this->getNick() != "*" && this->getUser() != "none" && this->getPasswd() != "none")
 	{
         this->isRegistered = 1;
     }
@@ -151,4 +151,42 @@ bool	User::isInvited(std::string channelName) const
 			return true;
 	}
 	return false;
+}
+
+void	User::addJoinedChannel(std::string channelName)
+{
+	this->joinedChannels.push_back(channelName);
+}
+
+void	User::removeJoinedChannel(std::string channelName)
+{
+	std::vector<std::string>::iterator it;
+	for (it = this->joinedChannels.begin(); it != this->joinedChannels.end(); ++it)
+	{
+		if (*it == channelName)
+		{
+			this->joinedChannels.erase(it);
+			return;
+		}
+	}
+}
+
+std::vector<std::string>	User::getJoinedChannels() const
+{
+	return this->joinedChannels;
+}
+
+//a revoir!!!!!!!!!!!!!
+void	User::sendAllJoinedChannels(std::string msg) const
+{
+	if (this->joinedChannels.size() == 0)
+		return;
+	else
+	{
+		std::vector<std::string>::const_iterator it;
+		for (it = this->joinedChannels.begin(); it != this->joinedChannels.end(); ++it)
+		{
+			send(fd, msg.c_str(), msg.length(), 0);
+		}
+	}
 }
