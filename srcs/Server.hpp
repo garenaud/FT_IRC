@@ -44,8 +44,8 @@ class Server
 
 		void	*get_in_addr(struct sockaddr *sa);
 		int		get_listener_socket(void);
-		void	add_to_pfds(int newfd);// a voir
-		void	del_from_pfds(int index); // a voir
+		void	add_to_pfds(int newfd);
+		void	del_from_pfds(int index);
 		void	setHint(int family, int type, int flag);
 
 		void	setListeningSocket();
@@ -61,6 +61,7 @@ class Server
 		int		getUserIndex(int fd);
 		User    *getUserByNick(const std::string& nick);
 		void 	displayUsers();
+		User    *getUserByNick(const std::string& nick);
 
 		Channel	*getChannel(std::string channelName);
 		void	createChannel(std::string channelName, User user);
@@ -73,10 +74,10 @@ class Server
 		bool stop;
 
 		// variable main...
-		int				listener_socket;//listener
-		int				accepted_socket;//newfd
-		char		buffer[512];//char buf[256]
-		std::string		remoteIP;// [INET6_ADDRSTRLEN];
+		int				listener_socket;
+		int				accepted_socket;
+		char		    buffer[512];
+		std::string		remoteIP;
 		socklen_t		addrlen;
 
 		struct		timeval tv;
@@ -85,10 +86,6 @@ class Server
 		std::vector<User> users;
 		struct sockaddr_storage remoteaddr;
 		std::map<std::string, Channel> channels;
-/*        struct sockaddr_in server_address;
-		struct sockaddr_in client_address;
-		struct sockaddr casted;
-*/
 };
 
 #endif

@@ -32,6 +32,7 @@ class Command
 		void		who(User &user, std::string prefix, std::vector<std::string> params);
 		void		mode(User &user, std::string prefix, std::vector<std::string> params);
 
+		void		privmsg(User &user, std::string prefix, std::vector<std::string> params); //
 		//void		registration(User user);
 		void		handleData(User &user, const std::string& data);
 		void		parseLine(User &user, std::string line);
@@ -39,6 +40,8 @@ class Command
 		void		sendChannelUsers(std::vector<User> channelUsers, std::string msg, User user) const; 
 
 		typedef void (Command::*CmdFunc)(User&, std::string, std::vector<std::string>);
+		void		sendChannelUsers(std::vector<User> channelUsers, std::string msg) const;
+		
 		static const CmdFunc cmdArr[];
 		std::string		buffer;
 	private:
