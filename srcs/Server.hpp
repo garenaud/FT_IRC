@@ -61,7 +61,6 @@ class Server
 		int		getUserIndex(int fd);
 		User    *getUserByNick(const std::string& nick);
 		void 	displayUsers();
-		User    *getUserByNick(const std::string& nick);
 
 		Channel	*getChannel(std::string channelName);
 		void	createChannel(std::string channelName, User user);

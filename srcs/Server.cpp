@@ -336,13 +336,3 @@ void	Server::rmChannel(std::string channelName)
 {
 	this->channels.erase(channelName);
 }
-
-User    *Server::getUserByNick(const std::string& nick)
-{
-    for (size_t i = 0; i < this->users.size(); ++i)
-    {
-        if (this->users[i].getNick() == nick)
-            return &(this->users[i]);
-    }
-    return nullptr;
-}
