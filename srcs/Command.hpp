@@ -2,7 +2,7 @@
 # define ICOMMAND_HPP
 #include <iostream>
 #include <vector>
-//#include "User.hpp"
+#include "User.hpp"
 #include "Server.hpp"
 
 class User;
@@ -30,13 +30,20 @@ class Command
 		void 		cap(User &user, std::string prefix, std::vector<std::string> params);
 		void		join(User &user, std::string prefix, std::vector<std::string> params);
 		void		who(User &user, std::string prefix, std::vector<std::string> params);
+		void		mode(User &user, std::string prefix, std::vector<std::string> params);
+
+		void		privmsg(User &user, std::string prefix, std::vector<std::string> params); //
 		//void		registration(User user);
 		void		handleData(User &user, const std::string& data);
 		void		parseLine(User &user, std::string line);
 		void        sendChannelUsers(std::vector<User> channelUsers, std::string msg) const;
 		void		sendToAllJoinedChannel(User &user, std::string msg);
 
+		void		sendChannelUsers(std::vector<User> channelUsers, std::string msg, User user) const; 
+
 		typedef void (Command::*CmdFunc)(User&, std::string, std::vector<std::string>);
+		void		sendChannelUsers(std::vector<User> channelUsers, std::string msg) const;
+		
 		static const CmdFunc cmdArr[];
 		std::string		buffer;
 	private:

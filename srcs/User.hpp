@@ -31,11 +31,18 @@ class User
 		void 		checkRegistration();
 
 		void		addInvitedChannel(std::string channelName);
+		void		rmInvitedChannel(std::string channelName);
 		bool		isInvited(std::string channelName) const;
+<<<<<<< HEAD
 		void		addJoinedChannel(std::string channelName);
 		void		removeJoinedChannel(std::string channelName);
 		void 		sendAllJoinedChannels(std::string msg) const;
 		std::vector<std::string>	getJoinedChannels() const;
+=======
+		void		addOperatorChannel(std::string channelName);
+		void		rmOperatorChannel(std::string channelName);
+		bool		isOperator(std::string channelName) const;
+>>>>>>> ce8a8cb2dc02fd177fda193097c364b8ced124cc
 
 	private:
 		const int	fd;
@@ -48,7 +55,11 @@ class User
 		int	isRegistered;
 
 		std::vector<std::string>	invitedChannels;
+<<<<<<< HEAD
 		std::vector<std::string>	joinedChannels;
+=======
+		std::vector<std::string>	operatorChannels;
+>>>>>>> ce8a8cb2dc02fd177fda193097c364b8ced124cc
 };
 
 std::ostream& operator<<(std::ostream& o, User const &src);

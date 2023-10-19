@@ -33,7 +33,7 @@ int     Server::getPort()
 }
 
 void    *Server::get_in_addr(struct sockaddr *sa)
-{// invariant
+{
     if (sa->sa_family == AF_INET) {
         return &(reinterpret_cast<struct sockaddr_in*>(sa)->sin_addr);
     }
@@ -41,7 +41,7 @@ void    *Server::get_in_addr(struct sockaddr *sa)
 }
 
 void    Server::setHint(int family, int type, int flag)
-{// invariant
+{
     std::memset(&this->hints, 0, sizeof(this->hints));
     this->hints.ai_family = family;
     this->hints.ai_socktype = type;
@@ -49,7 +49,7 @@ void    Server::setHint(int family, int type, int flag)
 }
 
 int     Server::get_listener_socket(void)
-{// invariant
+{
     int listener;     // Listening socket descriptor
     int yes=1;        // For setsockopt() SO_REUSEADDR, below
     int rv;
@@ -88,7 +88,7 @@ int     Server::get_listener_socket(void)
 }
 
 void    Server::add_to_pfds(int newfd)
-{// invariant: doute ? si pas adduser dedans ? voir 100
+{
     struct pollfd   data;
 
     data.fd = newfd;
@@ -107,7 +107,7 @@ void    Server::del_from_pfds(int index)
 }
 
 void    Server::setListeningSocket()
-{// invariant: doute ? si pas adduser dedans ? voir 100
+{
     this->listener_socket = get_listener_socket();
     if (this->listener_socket == -1)
     {
@@ -130,9 +130,9 @@ void    Server::handleNewConnection()
     else
     {
         add_to_pfds(this->accepted_socket);
+        // a voir ici
         addUser(this->accepted_socket);
-        //std::cout << newUser << std::endl;
-        //std::cout << users[0];
+
         const char* c =this->remoteIP.c_str();
         connection = inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),(char *)c, INET6_ADDRSTRLEN);
 
@@ -141,12 +141,12 @@ void    Server::handleNewConnection()
 }
 
 void Server::handleClient(Msg &aMess, int index)
-{// ?LOGIC ERROR 227 sembla avoir ete corrige ????
+{
 
     memset(this->buffer, 0, sizeof(this->buffer));
     int nbytes = recv(pfds[index].fd, this->buffer, sizeof(this->buffer), 0);
     int sender_fd = pfds[index].fd;
-    aMess.initialize(sender_fd, users[getUserIndex(sender_fd)], this->buffer, nbytes);//initialize(this->accepted_socket, "user", this->buffer, nbytes);
+    aMess.initialize(sender_fd, users[getUserIndex(sender_fd)], this->buffer, nbytes);
     aMess.split2("\r\n");
     if (nbytes <= 0)
     {
@@ -168,20 +168,23 @@ void Server::handleClient(Msg &aMess, int index)
         Command cmd(*this);
         while(aMess.getMessageSize() > 0)
         {
+			// std::cout << yellow << "enter in while in handleclient" << reset << std::endl; //test
+
             cmd.parseLine(users[getUserIndex(sender_fd)], aMess.getMessage());
             //std::cout << red << aMess.getMessage() << reset << std::endl;
         }
-        for(int j = 0; j < (int)this->pfds.size(); j++)
-        {
+       /* for(int j = 0; j < (int)this->pfds.size(); j++)
+        {// ici envoi des messages
             int dest_fd = pfds[j].fd;
             if (dest_fd != this->listener_socket && dest_fd != sender_fd)
-            {
+            {// a voir ici si pas a changer...
                 if (send(dest_fd, this->buffer, nbytes, 0) == -1)
                 {
                     perror("send");
                 }
             }
-        }
+        }*/
+
     }
 
 }
@@ -223,6 +226,12 @@ void Server::addUser(int fd)
     {
         std::cout << yellow << "FD = " << users[i].getFd() << " NICKNAME = " << users[i].getNick() << " USERNAME = " << users[i].getUser() << reset << std::endl;
     } */
+	std::cout << "Users on server :" << std::endl;  //test
+	for (int i = 0; i < static_cast<int>(this->users.size()); i++)  //test
+	{
+		std::cout << i << " = " << this->users[i].getNick() << std::endl;  //test
+	}
+
 }
 
 void Server::removeUser(int fd)
@@ -265,6 +274,16 @@ int     Server::getUserIndex(int fd)
     return -1;
 }
 
+User    *Server::getUserByNick(const std::string& nick)
+{
+    for (size_t i = 0; i < this->users.size(); ++i)
+    {
+        if (this->users[i].getNick() == nick)
+            return &(this->users[i]);
+    }
+    return nullptr;
+}
+
 int     Server::getPfdsIndex(int fd)
 {
     for (size_t i = 0; i < pfds.size(); ++i)
@@ -305,21 +324,18 @@ void	Server::createChannel(std::string channelName, User user)
 {
 	Channel channel(channelName, user);
 	this->channels.insert(std::make_pair(channelName, channel));
+
+	std::cout << "Channels on server :" << std::endl;  //test
+	int i = 0;
+	for (std::map<std::string, Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)  //test
+	{
+		std::cout << i++ << " = " << it->first << std::endl;  //test
+	}
 }
 
 void	Server::rmChannel(std::string channelName)
 {
 	this->channels.erase(channelName);
-}
-
-User    *Server::getUserByNick(const std::string& nick)
-{
-    for (size_t i = 0; i < this->users.size(); ++i)
-    {
-        if (this->users[i].getNick() == nick)
-            return &(this->users[i]);
-    }
-    return nullptr;
 }
 
 std::vector<User>	Server::getUser()

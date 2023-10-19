@@ -142,6 +142,15 @@ void	User::addInvitedChannel(std::string channelName)
 	this->invitedChannels.push_back(channelName);
 }
 
+void	User::rmInvitedChannel(std::string channelName)
+{
+	for (std::vector<std::string>::iterator it = invitedChannels.begin(); it != invitedChannels.end(); ++it)
+	{
+		if (*it == channelName)
+			it = invitedChannels.erase(it);
+	}
+}
+
 bool	User::isInvited(std::string channelName) const
 {
 	std::vector<std::string>::const_iterator it;
@@ -153,6 +162,7 @@ bool	User::isInvited(std::string channelName) const
 	return false;
 }
 
+<<<<<<< HEAD
 void	User::addJoinedChannel(std::string channelName)
 {
 	this->joinedChannels.push_back(channelName);
@@ -189,4 +199,29 @@ void	User::sendAllJoinedChannels(std::string msg) const
 			send(fd, msg.c_str(), msg.length(), 0);
 		}
 	}
+=======
+void	User::addOperatorChannel(std::string channelName)
+{
+	this->operatorChannels.push_back(channelName);
+}
+
+void	User::rmOperatorChannel(std::string channelName)
+{
+	for (std::vector<std::string>::iterator it = operatorChannels.begin(); it != operatorChannels.end(); ++it)
+	{
+		if (*it == channelName)
+			it = operatorChannels.erase(it);
+	}
+}
+
+bool	User::isOperator(std::string channelName) const
+{
+	std::vector<std::string>::const_iterator it;
+	for (it = this->operatorChannels.begin(); it != this->operatorChannels.end(); ++it)
+	{
+		if (*it == channelName)
+			return true;
+	}
+	return false;
+>>>>>>> ce8a8cb2dc02fd177fda193097c364b8ced124cc
 }
