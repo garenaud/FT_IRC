@@ -81,6 +81,11 @@ void	Command::privmsg(User &user, std::string prefix, std::vector<std::string> p
 	if (params.size() >= 2)
 	{
 		message = params[params.size() - 1];
+/*		if (message.length() == 0)
+		{// a verifier
+		std::string err = ":server 401 "  + user.getNick() +": No text to send\r\n";// 
+		send(user.getFd(), err.c_str(), err.length(), 0);
+		}*/
 		std::cout << cyan << "\t\t" <<message <<reset << std::endl;
 	}
 	else {};
