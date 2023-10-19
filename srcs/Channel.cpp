@@ -11,7 +11,7 @@ Channel::Channel(std::string name, User	user)
 	this->_mode.i = false;
 	this->_mode.t = false;
 	this->_mode.k = false;
-	this->_mode.o = false;
+	// this->_mode.o = false;
 	this->_mode.l = false;
 	this->_max = INT_MAX;
 	this->_password = "";
@@ -77,10 +77,10 @@ bool				Channel::getModeK() const
 	return this->_mode.k;
 }
 
-bool				Channel::getModeO() const
-{
-	return this->_mode.o;
-}
+// bool				Channel::getModeO() const
+// {
+// 	return this->_mode.o;
+// }
 
 bool				Channel::getModeL() const
 {
@@ -147,10 +147,10 @@ void	Channel::setRmMode(std::string mode)
 				if (this->_mode.k == false)
 					this->_mode.k = true;
 				break;
-			case 'o' :
-				if (this->_mode.o == false)
-					this->_mode.o = true;
-				break;
+			// case 'o' :
+			// 	if (this->_mode.o == false)
+			// 		this->_mode.o = true;
+			// 	break;
 			case 'l' :
 				if (this->_mode.l == false)
 					this->_mode.l= true;
@@ -175,10 +175,10 @@ void	Channel::setRmMode(std::string mode)
 				if (this->_mode.k == true)
 					this->_mode.k = false;
 				break;
-			case 'o' :
-				if (this->_mode.o == true)
-					this->_mode.o = false;
-				break;
+			// case 'o' :
+			// 	if (this->_mode.o == true)
+			// 		this->_mode.o = false;
+			// 	break;
 			case 'l' :
 				if (this->_mode.l == true)
 					this->_mode.l= false;
@@ -243,7 +243,7 @@ std::string	Channel::getList()
 	{
 		if (this->isChanops(_users[i]))
 			res += "@";
-		res += (_users[i].getUser() + " "); 
+		res += (_users[i].getNick() + " "); 
 	}
 	return res;
 }
@@ -277,6 +277,13 @@ void	Channel::addChanops(User user, User chanop)
 				this->_chanops.push_back(user);
 		}
 	}
+}
+
+void	Channel::rmChanops(User user)
+{
+	std::vector<User>::iterator it = std::find(_chanops.begin(), _chanops.end(), user);
+	if (it != _chanops.end())
+		_chanops.erase(it);
 }
 
 

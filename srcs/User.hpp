@@ -31,7 +31,11 @@ class User
 		void 		checkRegistration();
 
 		void		addInvitedChannel(std::string channelName);
+		void		rmInvitedChannel(std::string channelName);
 		bool		isInvited(std::string channelName) const;
+		void		addOperatorChannel(std::string channelName);
+		void		rmOperatorChannel(std::string channelName);
+		bool		isOperator(std::string channelName) const;
 
 	private:
 		const int	fd;
@@ -44,6 +48,7 @@ class User
 		int	isRegistered;
 
 		std::vector<std::string>	invitedChannels;
+		std::vector<std::string>	operatorChannels;
 };
 
 std::ostream& operator<<(std::ostream& o, User const &src);

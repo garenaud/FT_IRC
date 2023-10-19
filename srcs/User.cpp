@@ -142,10 +142,44 @@ void	User::addInvitedChannel(std::string channelName)
 	this->invitedChannels.push_back(channelName);
 }
 
+void	User::rmInvitedChannel(std::string channelName)
+{
+	for (std::vector<std::string>::iterator it = invitedChannels.begin(); it != invitedChannels.end(); ++it)
+	{
+		if (*it == channelName)
+			it = invitedChannels.erase(it);
+	}
+}
+
 bool	User::isInvited(std::string channelName) const
 {
 	std::vector<std::string>::const_iterator it;
 	for (it = this->invitedChannels.begin(); it != this->invitedChannels.end(); ++it)
+	{
+		if (*it == channelName)
+			return true;
+	}
+	return false;
+}
+
+void	User::addOperatorChannel(std::string channelName)
+{
+	this->operatorChannels.push_back(channelName);
+}
+
+void	User::rmOperatorChannel(std::string channelName)
+{
+	for (std::vector<std::string>::iterator it = operatorChannels.begin(); it != operatorChannels.end(); ++it)
+	{
+		if (*it == channelName)
+			it = operatorChannels.erase(it);
+	}
+}
+
+bool	User::isOperator(std::string channelName) const
+{
+	std::vector<std::string>::const_iterator it;
+	for (it = this->operatorChannels.begin(); it != this->operatorChannels.end(); ++it)
 	{
 		if (*it == channelName)
 			return true;

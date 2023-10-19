@@ -59,6 +59,7 @@ class Server
 		bool	isNickAvailable(const std::string& nick);
 		int 	getPfdsIndex(int fd);
 		int		getUserIndex(int fd);
+		User    *getUserByNick(const std::string& nick);
 		void 	displayUsers();
 
 		Channel	*getChannel(std::string channelName);

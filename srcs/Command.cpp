@@ -13,7 +13,15 @@ Command::Command(Server &server)
 {
 }
 
-const Command::CmdFunc Command::cmdArr[] = {&Command::cap, &Command::join, &Command::pass, &Command::ping, &Command::pong, &Command::nick, &Command::user, &Command::who};
+const Command::CmdFunc Command::cmdArr[] = {&Command::cap, 
+											&Command::join, 
+											&Command::pass, 
+											&Command::ping, 
+											&Command::pong, 
+											&Command::nick, 
+											&Command::user, 
+											&Command::who, 
+											&Command::mode};
 Command::~Command() {}
 
 void		Command::setPrefix(std::string prefix)
@@ -54,8 +62,9 @@ std::string	Command::getParams()
 
 void 	Command::execute(User &user)
 {
-    static const std::string arr[] = {"CAP", "JOIN", "PASS", "PING", "PONG", "NICK", "USER", "WHO"};
-    for (size_t i = 0; i < 8; i++)
+	std::cout << this->command << std::endl;
+    static const std::string arr[] = {"CAP", "JOIN", "PASS", "PING", "PONG", "NICK", "USER", "WHO", "MODE"};
+    for (size_t i = 0; i < 9; i++)
     {
         if (this->command == arr[i])
         {
@@ -83,7 +92,7 @@ void	Command::pong(User &user, std::string prefix, std::vector<std::string> para
 	(void)prefix;
  	if (params.size() > 0)
 	{
-		std::cout << "PONG " << params[0] << std::endl;
+		//std::cout << "PONG " << params[0] << std::endl;
 		std::string pong = "PONG " + params[0] + "\r\n";
 		send(user.getFd(), pong.c_str(), pong.length(), 0);
 	}
@@ -225,69 +234,100 @@ void	Command::cap(User &user, std::string prefix, std::vector<std::string> param
 
 void	Command::join(User &user, std::string prefix, std::vector<std::string> params)
 {
+	// checks
 	(void) prefix;
 	if (params.size() < 1)
 	{
-		std::string err = ":server 461 " + user.getNick() + " JOIN :Not enough parameters\r\n";
-		send(user.getFd(), err.c_str(), err.length(), 0);
+		std::string ERR_NEEDMOREPARAMS = ":localhost 461 " + user.getNick() + " JOIN :Not enough parameters.\r\n";
+		send(user.getFd(), ERR_NEEDMOREPARAMS.c_str(), ERR_NEEDMOREPARAMS.length(), 0);
 		return ;
 	}
 	std::string channel = params[0];
 	if (channel[0] != '#')
 	{
-		std::string err = ":server 403 " + user.getNick() + " :No such channel\r\n";
-		send(user.getFd(), err.c_str(), err.length(), 0);
+		std::string ERR_NOSUCHCHANNEL = ":localhost 403 " + user.getNick() + " " + channel + " :No such channel\r\n";
+		send(user.getFd(), ERR_NOSUCHCHANNEL.c_str(), ERR_NOSUCHCHANNEL.length(), 0);
 		return ;
 	}
+	// No channel
 	if (server.getChannel(channel) == nullptr)
 	{
+		// Create
 		server.createChannel(channel, user);
 		this->_channel = server.getChannel(channel);
+
+		// RPL
+		std::vector<User> channelUsers = this->_channel->getUsers();
+		std::string createMessage = ":" + user.getNick() + "!" + user.getUser() + "@localhost JOIN " + this->_channel->getName() + "\r\n";
+		sendChannelUsers(channelUsers, createMessage, user);
+		if (this->_channel->getTopic() != "")
+		{
+			std::string topicMessage = ":localhost 332 " + user.getNick() + " " + this->_channel->getName() + " " + this->_channel->getTopic() + "\r\n";
+			send(user.getFd(), topicMessage.c_str(), topicMessage.length(), 0);
+		}
+		std::string listUsersMessage = ":localhost 353 " + user.getNick() + " " + this->_channel->getName() + " :" + this->_channel->getList() + "\r\n";
+		send(user.getFd(), listUsersMessage.c_str(), listUsersMessage.length(), 0);
+		std::string endOfNames = ":localhost 366 " + user.getNick() + " " + this->_channel->getName() + " End of /NAMES list.\r\n";
+		send(user.getFd(), endOfNames.c_str(), endOfNames.length(), 0);
+		return;
 	}
-	else
+
+	// join active channel
+	if (server.getChannel(channel) != nullptr)
 	{
 		this->_channel = server.getChannel(channel);
-		if (!this->_channel->getModeI() || (this->_channel->getModeI() && user.isInvited(this->_channel->getName())))
+		if (this->_channel->getModeI() && !user.isInvited(this->_channel->getName()))
 		{
-			if (this->_channel->getModeI() && !user.isInvited(this->_channel->getName()))
+			std::string ERR_INVITEONLYCHAN = "474 " + user.getNick() + " " + channel + " :Cannot join channel (+i)\r\n";
+			send(user.getFd(), ERR_INVITEONLYCHAN.c_str(), ERR_INVITEONLYCHAN.length(), 0);
+			return;
+		}
+		else
+		{
+			if (this->_channel->getModeK() && (params.size() < 2 || params[1] != this->_channel->getPassword())) 
 			{
-				std::string ERR_INVITEONLYCHAN = "server 473 " + user.getNick() + " " + this->_channel->getName() + " :Cannot join channel (+i)\r\n";
-				send(user.getFd(), ERR_INVITEONLYCHAN.c_str(), ERR_INVITEONLYCHAN.length(), 0);
+				std::string ERR_BADCHANNELKEY  = "475 " + user.getNick() + " " + this->_channel->getName()  + " :Cannot join channel (+k)\r\n";
+				send(user.getFd(), ERR_BADCHANNELKEY.c_str(), ERR_BADCHANNELKEY.length(), 0);
 				return;
 			}
-			if (!this->_channel->getModeK() || (this->_channel->getModeK() && (params[1] == this->_channel->getPassword())))
+			else
 			{
-				if (this->_channel->getModeK() && (params[1] != this->_channel->getPassword()))
+				if (this->_channel->getSize() >= this->_channel->getMax())
 				{
-					std::string ERR_BADCHANNELKEY  = "server 475 " + user.getNick() + " " + this->_channel->getName()  + " :Cannot join channel (+k)\r\n";
-					send(user.getFd(), ERR_BADCHANNELKEY.c_str(), ERR_BADCHANNELKEY.length(), 0);
-					return;
-				}
-
-				if (this->_channel->getSize() == this->_channel->getMax())
-				{
-					std::string ERR_CHANNELISFULL = "server 471 " + user.getNick() + " " + this->_channel->getName()  + " :Cannot join channel (+l)\r\n";
+					std::string ERR_CHANNELISFULL = "471 " + user.getNick() + " " + this->_channel->getName()  + " :Cannot join channel (+l)\r\n";
 					send(user.getFd(), ERR_CHANNELISFULL.c_str(), ERR_CHANNELISFULL.length(), 0);
 					return;
 				}
-				if (this->_channel->isKicked(user))
+				else
 				{
-					std::string ERR_BANNEDFROMCHAN = "server 474 " + user.getNick() + " " + this->_channel->getName() + " :Cannot join channel after being kicked\r\n";
-					send(user.getFd(), ERR_BANNEDFROMCHAN.c_str(), ERR_BANNEDFROMCHAN.length(), 0);
-					return;
+					if (this->_channel->isKicked(user))
+					{
+						std::string ERR_BANNEDFROMCHAN = "474 " + user.getNick() + " " + this->_channel->getName() + " :Cannot join channel after being kicked\r\n";
+						send(user.getFd(), ERR_BANNEDFROMCHAN.c_str(), ERR_BANNEDFROMCHAN.length(), 0);
+						return;
+					}
+					else
+					{
+						// adduser
+						this->_channel->addUser(user);
+						// RPL
+						std::vector<User> channelUsers = this->_channel->getUsers();
+						std::string createMessage = ":" + user.getNick() + "!" + user.getUser() + "@localhost JOIN " + this->_channel->getName() + "\r\n";
+						sendChannelUsers(channelUsers, createMessage, user);
+						if (this->_channel->getTopic() != "")
+						{
+							std::string topicMessage = ":localhost 332 " + user.getNick() + " " + this->_channel->getName() + " " + this->_channel->getTopic() + "\r\n";
+							send(user.getFd(), topicMessage.c_str(), topicMessage.length(), 0);
+						}
+						std::string listUsersMessage = ":localhost 353 " + user.getNick() + " " + this->_channel->getName() + " :" + this->_channel->getList() + "\r\n";
+						send(user.getFd(), listUsersMessage.c_str(), listUsersMessage.length(), 0);
+						std::string endOfNames = ":localhost 366 " + user.getNick() + " " + this->_channel->getName() + " End of /NAMES list.\r\n";
+						send(user.getFd(), endOfNames.c_str(), endOfNames.length(), 0);
+					}
 				}
-				this->_channel->addUser(user);
 			}
 		}
 	}
-	std::string createMessage = ":" + user.getNick() + " JOIN " + this->_channel->getName() + "\r\n";
-	std::string topicMessage = ":" + user.getNick() + " " + this->_channel->getName() + " : " + this->_channel->getTopic() + "\r\n";
-	std::string listUsersMessage = ":" + user.getNick() + " " + this->_channel->getName() + " : " + this->_channel->getList() + "\r\n";
-	send(user.getFd(), createMessage.c_str(), createMessage.length(), 0);
-	send(user.getFd(), topicMessage.c_str(), topicMessage.length(), 0);
-	send(user.getFd(), listUsersMessage.c_str(), listUsersMessage.length(), 0);
-
-	std::cout << "JOIN = " << channel << std::endl;
 }
 
 void Command::handleData(User &user, const std::string& data) 
@@ -332,7 +372,6 @@ void Command::parseLine(User &user, std::string line)
         }
     }
     Command cmd(server, prefix, command, params);
-    //std::cout << cyan << "command = " << cmd.getCommand() << " params = " << cmd.getParams() << reset << std::endl; 
     cmd.execute(user);
 }
 
@@ -342,4 +381,212 @@ void	Command::who(User &user, std::string prefix, std::vector<std::string> param
 	(void)params;
 	(void)user;
 	server.displayUsers();
+}
+
+void	Command::mode(User &user, std::string prefix, std::vector<std::string> params)
+{
+	////// GENERAL CHECKS ////////////////////////////////////////////////////////////////////////////////////
+	(void)prefix;
+	if (params.size() < 2)
+	{
+		std::string err = ":server 461 " + user.getNick() + " MODE :Not enough parameters\r\n";
+		send(user.getFd(), err.c_str(), err.length(), 0);
+		return ;
+	}
+	if (params[0] == user.getNick())
+		return;
+	if (params[1] == "b")
+		return;
+	std::string channel = params[0];
+	if (server.getChannel(channel) == nullptr)
+	{
+		std::string ERR_NOSUCHCHANNEL = ":server 403 " + user.getNick() + " :No such channel\r\n";
+		send(user.getFd(), ERR_NOSUCHCHANNEL.c_str(), ERR_NOSUCHCHANNEL.length(), 0);
+		return ;
+	}
+	this->_channel = server.getChannel(channel);
+	if (!server.getChannel(channel)->isChanops(user))
+	{
+		std::string ERR_CHANOPRIVSNEEDED = ":server 482 " + user.getNick() + " " + this->_channel->getName() + " :You're not channel operator\r\n";
+		send(user.getFd(), ERR_CHANOPRIVSNEEDED.c_str(), ERR_CHANOPRIVSNEEDED.length(), 0);
+		return ;
+	}
+	if ((params[1][0] != '+' && params[1][0] != '-')
+			|| (params[1][1] != 'i' && params[1][1] != 't' && params[1][1] != 'k'
+			&& params[1][1] != 'o' && params[1][1] != 'l'))
+	{
+		std::string ERR_INVALIDMODEPARAM = ":" + user.getNick() + " " + this->_channel->getName() + " MODE " + params[1] + " :Invalid parameter.\r\n";
+		send(user.getFd(), ERR_INVALIDMODEPARAM.c_str(), ERR_INVALIDMODEPARAM.length(), 0);
+		return;
+	}
+	if ((params[1][1] == 'o' || (params[1][0] == '+' && (params[1][1] == 'k' || params[1][1] == 'l'))) && params.size() < 3)
+	{
+		std::string err = ":server 461 " + user.getNick() + " JOIN :Not enough parameters\r\n";
+		send(user.getFd(), err.c_str(), err.length(), 0);
+		return ;
+	}
+	std::vector<User> channelUsers = this->_channel->getUsers();
+
+	///// OPTION +o ///////////////////////////////////////////////////////////////////////////////////////////
+	if (params[1][1] == 'o')
+	{
+		User *paramUser = server.getUserByNick(params[2]);
+		if (!this->_channel->isUser(*paramUser))
+		{
+			std::string ERR_USERNOTINCHANNEL = ":server 441 " + user.getNick() + " " + paramUser->getNick() + " " + this->_channel->getName() + " :They aren't on that channel\r\n";
+			send(user.getFd(), ERR_USERNOTINCHANNEL.c_str(), ERR_USERNOTINCHANNEL.length(), 0);
+			return;
+		}
+		else
+		{
+			if (params[1][0] == '+')
+			{
+				this->_channel->addChanops(*paramUser, user);
+				paramUser->addOperatorChannel(this->_channel->getName());
+				std::string msg = params[2] + " is now operator in " + params[0] + "\r\n";
+				sendChannelUsers(channelUsers, msg, user);
+				return;
+			}
+			if (params[1][0] == '-')
+			{
+				this->_channel->rmChanops(*paramUser);
+				paramUser->rmOperatorChannel(params[0]);
+				std::string msg = params[2] + " is not operator anymore in " + params[0] + "\r\n";
+				sendChannelUsers(channelUsers, msg, user);
+				return;
+			}
+
+		}
+	}
+
+	//////// OPTION +k / +l /////////////////////////////////////////////////////////////////////////////
+	if (params[1][0] == '+' && (params[1][1] == 'k' || params[1][1] == 'l'))
+	{
+		if (params[1][1] == 'k')
+		{
+			if (!checkPassword(params[2]))
+			{
+				std::string ERR_INVALIDMODEPARAM = ":server 696 " + user.getNick() + " " + this->_channel->getName() + params[1] + params[2] + " :Invalid key\r\n";
+				send(user.getFd(), ERR_INVALIDMODEPARAM.c_str(), ERR_INVALIDMODEPARAM.length(), 0);
+				return ;
+			}
+			this->_channel->setRmMode("+k");
+			this->_channel->setPassword(params[2]);
+			std::string msg = ":localhost 324 " + user.getNick() + " " + this->_channel->getName() + " +k " + params[2] + "\r\n";
+			sendChannelUsers(channelUsers, msg, user);
+			return;
+		}
+		if (params[1][1] == 'l')
+		{
+			if (params[1][0] == '+')
+			{
+				int num = std::atoi(params[2].c_str());
+				if (num < static_cast<int>(this->_channel->getUsers().size()) || num > INT_MAX || num == 0)
+				{
+					std::string ERR_INVALIDMODEPARAM = ":server 696 " + user.getNick() + " " + this->_channel->getName() + params[1] + params[2] + " :Invalid user limit\r\n";
+					send(user.getFd(), ERR_INVALIDMODEPARAM.c_str(), ERR_INVALIDMODEPARAM.length(), 0);
+					return ;
+				}
+				this->_channel->setRmMode("+l");
+				this->_channel->setMax(num);
+				std::string msg = user.getNick() + " sets a new limit of users on " + this->_channel->getName() + " : " + params[2] + "\r\n";
+				sendChannelUsers(channelUsers, msg, user);
+				return;
+			}
+		}
+	}
+	if (params[1][0] == '-' && (params[1][1] == 'k' || params[1][1] == 'l'))
+	{
+		if (params[1][1] == 'k')
+		{
+			this->_channel->setPassword("");
+			this->_channel->setRmMode("-k");
+			std::string msg = user.getNick() + " removes key of " + this->_channel->getName() + "\r\n";
+			sendChannelUsers(channelUsers, msg, user);
+			return;
+		}
+		if (params[1][1] == 'l')
+		{
+			this->_channel->setMax(INT_MAX);
+			this->_channel->setRmMode("-l");
+			std::string msg = user.getNick() + " removes limit of user on " + this->_channel->getName() + "\r\n";
+			sendChannelUsers(channelUsers, msg, user);
+			return;
+		}
+	}
+
+	///////////// OPTION +i ////////////////////////////////////////////////////////////////////////////////
+	if (params[1][1] == 'i')
+	{
+		if (params[1][0] == '-')
+		{
+			this->_channel->setRmMode("-i");
+			for (std::vector<User>::iterator it = channelUsers.begin(); it != channelUsers.end(); ++it)
+			{
+				it->rmInvitedChannel(this->_channel->getName());
+			}
+			std::string msg = user.getNick() + " removes the invited-only mode on " + this->_channel->getName() + "\r\n";
+			sendChannelUsers(channelUsers, msg, user);
+			return;
+		}
+		if (params[1][0] == '+')
+		{
+			this->_channel->setRmMode("+i");
+			for (std::vector<User>::iterator it = channelUsers.begin(); it != channelUsers.end(); ++it)
+			{
+				it->addInvitedChannel(this->_channel->getName());
+			}
+			std::string msg = user.getNick() + " sets the invited-only mode on " + this->_channel->getName() + "\r\n";
+			sendChannelUsers(channelUsers, msg, user);
+			return;
+		}
+	}
+
+	////////// OPTION +t //////////////////////////////////////////////////////////////////////////////////
+	if (params[1][1] == 't')
+	{
+		if (params[1][0] == '-')
+		{
+			this->_channel->setRmMode("-t");
+			std::string msg = user.getNick() + " removes the protected topic mode on " + this->_channel->getName() + "\r\n";
+			sendChannelUsers(channelUsers, msg, user);
+			return;
+		}
+		if (params[1][0] == '+')
+		{
+			this->_channel->setRmMode("+t");
+			std::string msg = user.getNick() + " sets the protected topic mode on " + this->_channel->getName() + "\r\n";
+			sendChannelUsers(channelUsers, msg, user);
+			return;
+		}
+	}
+	else
+		return;
+}
+
+//  /MODE <channel> <+/- mode> [parametres]
+// command   p[0]      p[1]      p[2, ...]
+
+void	Command::sendChannelUsers(std::vector<User> channelUsers, std::string msg, User user) const
+{
+	for (int i = 0; i < static_cast<int>(channelUsers.size()); i++)
+	{
+		if (channelUsers[i].getNick() != user.getNick())
+			send(channelUsers[i].getFd(), msg.c_str(), msg.length(), 0);
+	}
+}
+
+bool	checkPassword(std::string passWord)
+{
+	if (passWord.length() > 20)
+		return false;
+	for (size_t i = 0; i < passWord.length(); ++i)
+	{
+		char c = passWord[i];
+		if (!isalnum(c) && !ispunct(c)) 
+			return false;
+		if (isspace(c))
+			return false;
+	}
+	return true;
 }
