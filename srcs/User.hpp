@@ -40,6 +40,7 @@ class User
 		void		addOperatorChannel(std::string channelName);
 		void		rmOperatorChannel(std::string channelName);
 		bool		isOperator(std::string channelName) const;
+		bool 		getIsAlive() const;
 
 	private:
 		const int	fd;
@@ -50,6 +51,7 @@ class User
 		std::string	hostname;
 		std::string mode;
 		int	isRegistered;
+		bool isAlive;
 
 		std::vector<std::string>	invitedChannels;
 		std::vector<std::string>	joinedChannels;

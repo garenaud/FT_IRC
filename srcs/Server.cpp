@@ -164,14 +164,10 @@ void Server::handleClient(Msg &aMess, int index)
     else
     {
         std::string received_data(this->buffer, nbytes);
-        std::cout << redbg << "Received data: " << received_data << reset << std::endl;
         Command cmd(*this);
         while(aMess.getMessageSize() > 0)
         {
-			// std::cout << yellow << "enter in while in handleclient" << reset << std::endl; //test
-
             cmd.parseLine(users[getUserIndex(sender_fd)], aMess.getMessage());
-            //std::cout << red << aMess.getMessage() << reset << std::endl;
         }
        /* for(int j = 0; j < (int)this->pfds.size(); j++)
         {// ici envoi des messages
@@ -337,11 +333,8 @@ void	Server::rmChannel(std::string channelName)
 {
 	this->channels.erase(channelName);
 }
-<<<<<<< HEAD
 
 std::vector<User>	Server::getUser()
 {
     return this->users;
 }
-=======
->>>>>>> f1e53d8cafa0861110dd821519b8657b20729341

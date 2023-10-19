@@ -1,15 +1,23 @@
 #include "User.hpp"
 #include "Server.hpp"
 
-User::User(int fd, std::string nick, std::string user) : fd(fd), nick(nick), user(user), passwd("none"), realname("none"), hostname("none"), mode("0"), isRegistered(0) 
+User::User(int fd, std::string nick, std::string user) : fd(fd), nick(nick), user(user), passwd("none"), realname("none"), hostname("none"), mode("0"), isRegistered(0), isAlive(true)
 {
 }
 
-User::User(int fd) : fd(fd), nick("none"), user("none"), passwd("none"), realname("none"), hostname("none"), mode("0"), isRegistered(0)
+User::User(int fd) : fd(fd), nick("none"), user("none"), passwd("none"), realname("none"), hostname("none"), mode("0"), isRegistered(0), isAlive(true)
 {
 }
 
-User::~User() {}
+User::~User() 
+{
+	isAlive = false;
+}
+
+bool	User::getIsAlive() const
+{
+	return this->isAlive;
+}
 
 void	User::operator=(User const &src)
 {

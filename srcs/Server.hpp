@@ -61,10 +61,7 @@ class Server
 		int 	getPfdsIndex(int fd);
 		int		getUserIndex(int fd);
 		void 	displayUsers();
-<<<<<<< HEAD
 		std::vector<User>	getUser();
-=======
->>>>>>> f1e53d8cafa0861110dd821519b8657b20729341
 
 		Channel	*getChannel(std::string channelName);
 		void	createChannel(std::string channelName, User user);
