@@ -251,9 +251,18 @@ std::string	Channel::getList()
 
 void	Channel::addUser(User user)
 {
-	this->_users.push_back(user);
-	std::cout << "user add to channel" << std::endl;
-
+	if (this->isUser(user))
+	{
+		std::string err = ":server 433 * " + user.getNick() + " :Nickname is already in use \r\n";
+        std::cout << cyan << "nick already in use = " << err << reset << std::endl;
+        send(user.getFd(), err.c_str(), err.length(), 0);
+        return ;
+	}
+	else
+	{
+		this->_users.push_back(user);
+		// std::cout << "user add to channel" << std::endl;
+	}
 }
 
 void	Channel::inviteUser(User &user, User chanop)

@@ -3,6 +3,9 @@
 #include <iostream>
 #include "Server.hpp"
 //#include "Msg.hpp"
+#include "Channel.hpp"
+
+class Channel;
 
 class User
 {
@@ -33,6 +36,10 @@ class User
 		void		addInvitedChannel(std::string channelName);
 		void		rmInvitedChannel(std::string channelName);
 		bool		isInvited(std::string channelName) const;
+		void		addJoinedChannel(Channel *channel);
+		void		removeJoinedChannel(Channel *channel);
+		void 		sendAllJoinedChannels(std::string msg);
+		std::vector<Channel *>	getJoinedChannels();
 		void		addOperatorChannel(std::string channelName);
 		void		rmOperatorChannel(std::string channelName);
 		bool		isOperator(std::string channelName) const;
@@ -48,6 +55,7 @@ class User
 		int	isRegistered;
 
 		std::vector<std::string>	invitedChannels;
+		std::vector<Channel *>		joinedChannels;
 		std::vector<std::string>	operatorChannels;
 };
 
