@@ -25,12 +25,12 @@ class Channel
 		Mode				_mode;
 		int					_max;
 		std::string			_password;
-		std::vector<User>	_users;
-		std::vector<User>	_chanops;
-		std::vector<User>	_kickedUsers;
+		std::vector<User *>	_users;
+		std::vector<User *>	_chanops;
+		std::vector<User *>	_kickedUsers;
 
 	public:
-		Channel(std::string name, User oper);
+		Channel(std::string name, User *oper);
 		~Channel();
 
 		//operators
@@ -48,9 +48,9 @@ class Channel
 		bool				getModeL() const;
 		int					getMax() const;
 		std::string			getPassword() const;
-		std::vector<User>	getUsers() const;
-		std::vector<User>	getChanops() const;
-		std::vector<User>	getKickedUsers() const;
+		std::vector<User *>	getUsers() const;
+		std::vector<User *>	getChanops() const;
+		std::vector<User *>	getKickedUsers() const;
 
 		int					getSize() const;
 
@@ -62,17 +62,17 @@ class Channel
 		void	setPassword(std::string password);
 
 		// others
-		bool		isUser(User user);
-		bool		isChanops(User user);
-		bool		isKicked(User user);
+		bool		isUser(User &user);
+		bool		isChanops(User &user);
+		bool		isKicked(User &user);
 		std::string	getList();
 
-		void	addUser(User user);
+		void	addUser(User &user);
 		void	inviteUser(User &user, User chanop);
-		void	addChanops(User user, User chanop);
-		void	rmChanops(User user);
-		void	kickUser(User user, User chanop);
-		void	kickChanops(User user, User chanop);
+		void	addChanops(User &user, User chanop);
+		void	rmChanops(User &user);
+		void	kickUser(User &user, User chanop);
+		void	kickChanops(User &user, User chanop);
 
 		void	printUsers();
 		void	printChanops();

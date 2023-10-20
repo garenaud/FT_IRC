@@ -25,12 +25,6 @@ const Command::CmdFunc Command::cmdArr[] = {&Command::cap,
                                             &Command::privmsg};
 Command::~Command() {}
 
-void	Command::sendChannelUsers(std::vector<User> channelUsers, std::string msg) const
-{// a modifier
-	for (int i = 0; i < static_cast<int>(channelUsers.size()); i++)
-		send(channelUsers[i].getFd(), msg.c_str(), msg.length(), 0);
-}
-
 void		Command::setPrefix(std::string prefix)
 {
 	this->prefix = prefix;
@@ -122,10 +116,10 @@ void	Command::privmsg(User &user, std::string prefix, std::vector<std::string> p
 			return;
 		}
 		std::cout << cyan << "\t\t" << chan->getName() <<reset <<std::endl;
-		std::vector<User> users = chan->getUsers();
+		std::vector<User *> users = chan->getUsers();
 		for (size_t i = 0; i < users.size(); i++)
 		{
-			if (user.getNick() != users[i].getNick())
+			if (user.getNick() != users[i]->getNick())
 			{
 				std::string	msg = ":" + user.getNick() +" PRIVMSG " + chan->getName() + " :" + message +"\r\n";
 				if (i==0)
@@ -134,7 +128,7 @@ void	Command::privmsg(User &user, std::string prefix, std::vector<std::string> p
 					std::cout << "users.size() = "<< users.size() <<" \n";
 				}
 				std::cout << red << "\t\t\t" << msg << reset<< std::endl;
-				send(users[i].getFd(), msg.c_str(), msg.length(), 0);
+				send(users[i]->getFd(), msg.c_str(), msg.length(), 0);
 			}
 		}
 	}
@@ -221,11 +215,12 @@ void    Command::nick(User &user, std::string prefix, std::vector<std::string> p
     }
     else if (user.getIsRegistered() == 2) //(!prefix.empty())
     {
-		user.setNick(nick);
+		server.getUserByNick(user.getNick())->setNick(nick);
+		
         std::string createMessage = ":" + oldNick + "!" + user.getUser() + "@" + user.getHostname() + " NICK " + user.getNick() + "\r\n";
         std::cout << "createMessage = " << createMessage << std::endl;
-		user.sendAllJoinedChannels(createMessage);
-        //send(user.getFd(), createMessage.c_str(), createMessage.length(), 0);
+		// user.sendAllJoinedChannels(createMessage);
+        send(user.getFd(), createMessage.c_str(), createMessage.length(), 0);
         //sendToAllJoinedChannel(user, createMessage);
     }
     //std::cout << user.getFd() << " NICKNAME = " << user.getNick() << std::endl;
@@ -349,12 +344,12 @@ void	Command::join(User &user, std::string prefix, std::vector<std::string> para
 	if (server.getChannel(channel) == nullptr)
 	{
 		// Create
-		server.createChannel(channel, user);
+		server.createChannel(channel, &user);
 		this->_channel = server.getChannel(channel);
 		user.addJoinedChannel(this->_channel);
 
 		// RPL
-		std::vector<User> channelUsers = this->_channel->getUsers();
+		std::vector<User *> channelUsers = this->_channel->getUsers();
 		std::string createMessage = ":" + user.getNick() + "!" + user.getUser() + "@localhost JOIN " + this->_channel->getName() + "\r\n";
 		sendChannelUsers(channelUsers, createMessage, user);
 		if (this->_channel->getTopic() != "")
@@ -409,7 +404,7 @@ void	Command::join(User &user, std::string prefix, std::vector<std::string> para
 						this->_channel->addUser(user);
 						user.addJoinedChannel(this->_channel);
 						// RPL
-						std::vector<User> channelUsers = this->_channel->getUsers();
+						std::vector<User *> channelUsers = this->_channel->getUsers();
 						std::string createMessage = ":" + user.getNick() + "!" + user.getUser() + "@localhost JOIN " + this->_channel->getName() + "\r\n";
 						sendChannelUsers(channelUsers, createMessage, user);
 						if (this->_channel->getTopic() != "")
@@ -498,8 +493,8 @@ void	Command::sendToAllJoinedChannel(User &user, std::string msg)
 		for (it = user.getJoinedChannels().begin(); it != user.getJoinedChannels().end(); ++it)
 		{
 			Channel *channel = *it;  // Déréférencer l'itérateur pour obtenir un pointeur de Channel
-			std::vector<User> channelUsers = server.getChannel(channel->getName())->getUsers();
-			sendChannelUsers(channelUsers, msg);
+			std::vector<User *> channelUsers = server.getChannel(channel->getName())->getUsers();
+			sendChannelUsers(channelUsers, msg, user);
 		}
 	}
 }
@@ -545,7 +540,7 @@ void	Command::mode(User &user, std::string prefix, std::vector<std::string> para
 		send(user.getFd(), err.c_str(), err.length(), 0);
 		return ;
 	}
-	std::vector<User> channelUsers = this->_channel->getUsers();
+	std::vector<User *> channelUsers = this->_channel->getUsers();
 
 	///// OPTION +o ///////////////////////////////////////////////////////////////////////////////////////////
 	if (params[1][1] == 'o')
@@ -641,9 +636,9 @@ void	Command::mode(User &user, std::string prefix, std::vector<std::string> para
 		if (params[1][0] == '-')
 		{
 			this->_channel->setRmMode("-i");
-			for (std::vector<User>::iterator it = channelUsers.begin(); it != channelUsers.end(); ++it)
+			for (std::vector<User *>::iterator it = channelUsers.begin(); it != channelUsers.end(); ++it)
 			{
-				it->rmInvitedChannel(this->_channel->getName());
+				(*it)->rmInvitedChannel(this->_channel->getName());
 			}
 			std::string msg = user.getNick() + " removes the invited-only mode on " + this->_channel->getName() + "\r\n";
 			sendChannelUsers(channelUsers, msg, user);
@@ -652,9 +647,9 @@ void	Command::mode(User &user, std::string prefix, std::vector<std::string> para
 		if (params[1][0] == '+')
 		{
 			this->_channel->setRmMode("+i");
-			for (std::vector<User>::iterator it = channelUsers.begin(); it != channelUsers.end(); ++it)
+			for (std::vector<User *>::iterator it = channelUsers.begin(); it != channelUsers.end(); ++it)
 			{
-				it->addInvitedChannel(this->_channel->getName());
+				(*it)->addInvitedChannel(this->_channel->getName());
 			}
 			std::string msg = user.getNick() + " sets the invited-only mode on " + this->_channel->getName() + "\r\n";
 			sendChannelUsers(channelUsers, msg, user);
@@ -687,12 +682,12 @@ void	Command::mode(User &user, std::string prefix, std::vector<std::string> para
 //  /MODE <channel> <+/- mode> [parametres]
 // command   p[0]      p[1]      p[2, ...]
 
-void	Command::sendChannelUsers(std::vector<User> channelUsers, std::string msg, User user) const
+void	Command::sendChannelUsers(std::vector<User *> channelUsers, std::string msg, User user) const
 {
 	for (int i = 0; i < static_cast<int>(channelUsers.size()); i++)
 	{
-		if (channelUsers[i].getNick() != user.getNick())
-			send(channelUsers[i].getFd(), msg.c_str(), msg.length(), 0);
+		if (channelUsers[i]->getNick() != user.getNick())
+			send(channelUsers[i]->getFd(), msg.c_str(), msg.length(), 0);
 	}
 }
 

@@ -2,7 +2,7 @@
 
 //////// Constructor / Destructors ////////////////////////////////////////////
 
-Channel::Channel(std::string name, User	user)
+Channel::Channel(std::string name, User	*user)
 {
 	this->_users.push_back(user);
 	this->_chanops.push_back(user);
@@ -97,17 +97,17 @@ std::string			Channel::getPassword() const
 	return this->_password;
 }
 
-std::vector<User>	Channel::getUsers() const
+std::vector<User *>	Channel::getUsers() const
 {
 	return this->_users;
 }
 
-std::vector<User>	Channel::getChanops() const
+std::vector<User *>	Channel::getChanops() const
 {
 	return this->_chanops;
 }
 
-std::vector<User>	Channel::getKickedUsers() const
+std::vector<User *>	Channel::getKickedUsers() const
 {
 	return this->_kickedUsers;
 }
@@ -201,10 +201,10 @@ void	Channel::setPassword(std::string password)
 
 ///// others //////////////////////////////////////////////////////////////////
 
-bool	Channel::isUser(User user)
+bool	Channel::isUser(User &user)
 {
-	std::vector<User>::iterator it;
-	it = std::find(_users.begin(), _users.end(), user);
+	std::vector<User *>::iterator it;
+	it = std::find(_users.begin(), _users.end(), &user);
 
 	if(it != _users.end())
 		return true;
@@ -213,10 +213,10 @@ bool	Channel::isUser(User user)
 }
 
 
-bool	Channel::isChanops(User user)
+bool	Channel::isChanops(User &user)
 {
-	std::vector<User>::iterator it;
-	it = std::find(_chanops.begin(), _chanops.end(), user);
+	std::vector<User *>::iterator it;
+	it = std::find(_chanops.begin(), _chanops.end(), &user);
 
 	if(it != _chanops.end())
 		return true;
@@ -225,10 +225,10 @@ bool	Channel::isChanops(User user)
 }
 
 
-bool	Channel::isKicked(User user)
+bool	Channel::isKicked(User &user)
 {
-	std::vector<User>::iterator it;
-	it = std::find(_kickedUsers.begin(), _kickedUsers.end(), user);
+	std::vector<User *>::iterator it;
+	it = std::find(_kickedUsers.begin(), _kickedUsers.end(), &user);
 
 	if(it != _kickedUsers.end())
 		return true;
@@ -239,17 +239,18 @@ bool	Channel::isKicked(User user)
 std::string	Channel::getList()
 {
 	std::string res;
-	for (size_t i = 0; i < static_cast<size_t>(this->_users.size()); i++)
+	
+	for (std::vector<User *>::iterator it = this->_users.begin(); it != this->_users.end(); ++it)
 	{
-		if (this->isChanops(_users[i]))
+		if (this->isChanops(**it))
 			res += "@";
-		res += (_users[i].getNick() + " "); 
+		res += ((*it)->getNick() + " "); 
 	}
 	return res;
 }
 
 
-void	Channel::addUser(User user)
+void	Channel::addUser(User &user)
 {
 	if (this->isUser(user))
 	{
@@ -260,7 +261,7 @@ void	Channel::addUser(User user)
 	}
 	else
 	{
-		this->_users.push_back(user);
+		this->_users.push_back(&user);
 		// std::cout << "user add to channel" << std::endl;
 	}
 }
@@ -274,38 +275,38 @@ void	Channel::inviteUser(User &user, User chanop)
 	}
 }
 
-void	Channel::addChanops(User user, User chanop)
+void	Channel::addChanops(User &user, User chanop)
 {
 	if (this->isChanops(chanop))
 	{
 		if (!this->isKicked(user))
 		{
 			if (!this->isUser(user) )
-				this->_users.push_back(user);
+				this->_users.push_back(&user);
 			if (!this->isChanops(user))
-				this->_chanops.push_back(user);
+				this->_chanops.push_back(&user);
 		}
 	}
 }
 
-void	Channel::rmChanops(User user)
+void	Channel::rmChanops(User &user)
 {
-	std::vector<User>::iterator it = std::find(_chanops.begin(), _chanops.end(), user);
+	std::vector<User *>::iterator it = std::find(_chanops.begin(), _chanops.end(), &user);
 	if (it != _chanops.end())
 		_chanops.erase(it);
 }
 
 
-void	Channel::kickUser(User user, User chanop)
+void	Channel::kickUser(User &user, User chanop)
 {
 	if (this->isChanops(chanop))
 	{
-		for (std::vector<User>::iterator it = _users.begin(); it != _users.end(); ++it)
+		for (std::vector<User *>::iterator it = _users.begin(); it != _users.end(); ++it)
 		{
-			if (*it == user)
+			if (*it == &user)
 			{
-				_users.erase(it);
-				this->_kickedUsers.push_back(user);
+				this->_users.erase(it);
+				this->_kickedUsers.push_back(&user);
 				break;
 			}
 		}
@@ -315,15 +316,15 @@ void	Channel::kickUser(User user, User chanop)
 }
 
 
-void	Channel::kickChanops(User user, User chanop)
+void	Channel::kickChanops(User &user, User chanop)
 {
 	if (this->isChanops(chanop))
 	{
-		for (std::vector<User>::iterator it2 = _chanops.begin(); it2 != _chanops.end(); ++it2)
+		for (std::vector<User *>::iterator it = _chanops.begin(); it != _chanops.end(); ++it)
 		{
-			if (*it2 == user)
+			if (*it == &user)
 			{
-				_chanops.erase(it2);
+				_chanops.erase(it);
 				break;
 			}
 		}
@@ -336,16 +337,16 @@ void	Channel::kickChanops(User user, User chanop)
 
 void	Channel::printUsers()
 {
-	std::vector<User>::iterator it;
+	std::vector<User *>::iterator it;
 
 	for (it = _users.begin(); it != _users.end(); ++it)
-		std::cout << it->getNick() << std::endl; 
+		std::cout << (*it)->getNick() << std::endl; 
 }
 
 void	Channel::printChanops()
 {
-	std::vector<User>::iterator it;
+	std::vector<User *>::iterator it;
 
 	for (it = _chanops.begin(); it != _chanops.end(); ++it)
-		std::cout << it->getNick() << std::endl; 
+		std::cout << (*it)->getNick() << std::endl; 
 }

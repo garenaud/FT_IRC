@@ -201,11 +201,11 @@ void	User::sendAllJoinedChannels(std::string msg)
 	{
 		for (int i = 0; i != static_cast<int>(this->joinedChannels.size()); i++)
 		{
-			std::vector<User> channelUsers = this->joinedChannels[i]->getUsers();
+			std::vector<User *> channelUsers = this->joinedChannels[i]->getUsers();
 			for (int i = 0; i < static_cast<int>(channelUsers.size()); i++)
 			{
-				if (channelUsers[i].getNick() != this->nick)
-					send(channelUsers[i].getFd(), msg.c_str(), msg.length(), 0);
+				if (channelUsers[i]->getNick() != this->nick)
+					send(channelUsers[i]->getFd(), msg.c_str(), msg.length(), 0);
 			}
 		}
 	}

@@ -64,7 +64,7 @@ class Server
 		std::vector<User>	getUser();
 
 		Channel	*getChannel(std::string channelName);
-		void	createChannel(std::string channelName, User user);
+		void	createChannel(std::string channelName, User *user);
 		void	rmChannel(std::string channelName);
 
 

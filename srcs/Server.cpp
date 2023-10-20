@@ -316,7 +316,7 @@ Channel	*Server::getChannel(std::string channelName)
 		return nullptr;
 }
 
-void	Server::createChannel(std::string channelName, User user)
+void	Server::createChannel(std::string channelName, User *user)
 {
 	Channel channel(channelName, user);
 	this->channels.insert(std::make_pair(channelName, channel));
