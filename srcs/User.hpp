@@ -36,17 +36,10 @@ class User
 		void		addInvitedChannel(std::string channelName);
 		void		rmInvitedChannel(std::string channelName);
 		bool		isInvited(std::string channelName) const;
-<<<<<<< HEAD
 		void		addJoinedChannel(Channel *channel);
 		void		removeJoinedChannel(Channel *channel);
 		void 		sendAllJoinedChannels(std::string msg);
 		std::vector<Channel *>	getJoinedChannels();
-=======
-		void		addJoinedChannel(std::string channelName);
-		void		removeJoinedChannel(std::string channelName);
-		void 		sendAllJoinedChannels(std::string msg) const;
-		std::vector<std::string>	getJoinedChannels() const;
->>>>>>> 7cd873ba13ac3faa27fcbee5e6310d6ffd593394
 		void		addOperatorChannel(std::string channelName);
 		void		rmOperatorChannel(std::string channelName);
 		bool		isOperator(std::string channelName) const;
@@ -64,11 +57,7 @@ class User
 		bool isAlive;
 
 		std::vector<std::string>	invitedChannels;
-<<<<<<< HEAD
 		std::vector<Channel *>		joinedChannels;
-=======
-		std::vector<std::string>	joinedChannels;
->>>>>>> 7cd873ba13ac3faa27fcbee5e6310d6ffd593394
 		std::vector<std::string>	operatorChannels;
 };
 
