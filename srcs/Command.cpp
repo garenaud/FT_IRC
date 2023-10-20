@@ -114,18 +114,27 @@ void	Command::privmsg(User &user, std::string prefix, std::vector<std::string> p
 	}
 	else if (chan)
 	{
+		if (!chan->isUser(user))
+		{
+			std::string ERR_NOTONCHANNEL = ":server 442 " + user.getNick() + " " + params[0] + " " + ": You're not on that channel\r\n";
+			send(user.getFd(), ERR_NOTONCHANNEL.c_str(), ERR_NOTONCHANNEL.length(), 0);
+			return;
+		}
 		std::cout << cyan << "\t\t" << chan->getName() <<reset <<std::endl;
 		std::vector<User> users = chan->getUsers();
 		for (size_t i = 0; i < users.size(); i++)
 		{
-			std::string	msg = ":" + user.getNick() +" PRIVMSG " + chan->getName() + " :" + message +"\r\n";
-			if (i==0)
+			if (user.getNick() != users[i].getNick())
 			{
-				std::cout << "PRIVMSG channel case\n";
-				std::cout << "users.size() = "<< users.size() <<" \n";
+				std::string	msg = ":" + user.getNick() +" PRIVMSG " + chan->getName() + " :" + message +"\r\n";
+				if (i==0)
+				{
+					std::cout << "PRIVMSG channel case\n";
+					std::cout << "users.size() = "<< users.size() <<" \n";
+				}
+				std::cout << red << "\t\t\t" << msg << reset<< std::endl;
+				send(users[i].getFd(), msg.c_str(), msg.length(), 0);
 			}
-			std::cout << red << "\t\t\t" << msg << reset<< std::endl;
-			send(users[i].getFd(), msg.c_str(), msg.length(), 0);
 		}
 	}
 	else
@@ -162,38 +171,57 @@ void	Command::pong(User &user, std::string prefix, std::vector<std::string> para
 	//std::cout << "Pong envoye \n";
 }
 
-void	Command::nick(User &user, std::string prefix, std::vector<std::string> params)
+void    Command::nick(User &user, std::string prefix, std::vector<std::string> params)
 {
-	(void)prefix;
-	if (params.size() != 1)
-	{
-		std::string err = ":server 461 " + user.getNick() + " NICK :Not enough parameters\r\n";
-		send(user.getFd(), err.c_str(), err.length(), 0);
-		return ;
-	}
-	std::string nick = params[0];
-	if (nick.length() > 9)
-	{
-		std::string err = ":server 432 " + user.getNick() + " NICK :Erroneous nickname\r\n";
-		send(user.getFd(), err.c_str(), err.length(), 0);
-		return ;
-	}
-		int counter = 1;
-	std::string originalNick = nick;
-
-	while (!server.isNickAvailable(nick))
-	{
-		nick = originalNick + std::to_string(counter);
-		counter++;
-	}
-	user.setNick(nick);
-		if (user.getIsRegistered() == 1)
-	{
-		std::string err = ":server 001 " + user.getNick() + " :Welcome to the Internet Relay Network " + user.getNick() + "\r\n";
-		send(user.getFd(), err.c_str(), err.length(), 0);
-		user.setIsRegistered(2);
-	}
-	//std::cout << user.getFd() << " NICKNAME = " << user.getNick() << std::endl;
+    (void)prefix;
+    std::string oldNick = user.getNick();
+    std::string nick = params[0];
+    if (params.size() != 1)
+    {
+        std::cout << "params = " << getParams() << std::endl;
+        std::string err = ":server 461 " + nick + " NICK :Not enough parameters\r\n";
+        send(user.getFd(), err.c_str(), err.length(), 0);
+        return ;
+    }
+    if (nick.length() > 9)
+    {
+        std::string err = ":server 432 " + nick + " NICK :Erroneous nickname\r\n";
+        send(user.getFd(), err.c_str(), err.length(), 0);
+        return ;
+    }
+    std::string originalNick = nick;
+    if (!server.isNickAvailable(nick))
+    {
+        std::string err = ":server 433 * " + nick + " :Nickname is already in use \r\n";
+        std::cout << cyan << "nick already in use = " << err << reset << std::endl;
+        send(user.getFd(), err.c_str(), err.length(), 0);
+        return ;
+    }
+    if (server.isNickAvailable(nick) && user.getIsRegistered() == 0)
+    {
+        user.setNick(nick);
+        user.checkRegistration();
+        std::string createMessage = ":" + oldNick + "!" + user.getUser() + "@" + user.getHostname() + " NICK " + user.getNick() + "\r\n";
+        std::cout << "createMessage = " << createMessage << "register = " << user.getIsRegistered() << std::endl;
+        send(user.getFd(), createMessage.c_str(), createMessage.length(), 0);
+    }
+    //user.setNick(nick);
+    if (user.getIsRegistered() == 1)
+    {
+        std::string err = ":server 001 " + user.getNick() + " :Welcome to the Internet Relay Network " + user.getNick() + "\r\n";
+        send(user.getFd(), err.c_str(), err.length(), 0);
+        user.setIsRegistered(2);
+    }
+    else if (user.getIsRegistered() == 2) //(!prefix.empty())
+    {
+		user.setNick(nick);
+        std::string createMessage = ":" + oldNick + "!" + user.getUser() + "@" + user.getHostname() + " NICK " + user.getNick() + "\r\n";
+        std::cout << "createMessage = " << createMessage << std::endl;
+		user.sendAllJoinedChannels(createMessage);
+        //send(user.getFd(), createMessage.c_str(), createMessage.length(), 0);
+        //sendToAllJoinedChannel(user, createMessage);
+    }
+    //std::cout << user.getFd() << " NICKNAME = " << user.getNick() << std::endl;
 }
 
 void	Command::user(User &user, std::string prefix, std::vector<std::string> params)
@@ -317,6 +345,7 @@ void	Command::join(User &user, std::string prefix, std::vector<std::string> para
 		// Create
 		server.createChannel(channel, user);
 		this->_channel = server.getChannel(channel);
+		user.addJoinedChannel(this->_channel);
 
 		// RPL
 		std::vector<User> channelUsers = this->_channel->getUsers();
@@ -372,6 +401,7 @@ void	Command::join(User &user, std::string prefix, std::vector<std::string> para
 					{
 						// adduser
 						this->_channel->addUser(user);
+						user.addJoinedChannel(this->_channel);
 						// RPL
 						std::vector<User> channelUsers = this->_channel->getUsers();
 						std::string createMessage = ":" + user.getNick() + "!" + user.getUser() + "@localhost JOIN " + this->_channel->getName() + "\r\n";
