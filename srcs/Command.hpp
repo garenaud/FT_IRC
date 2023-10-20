@@ -36,6 +36,7 @@ class Command
 		//void		registration(User user);
 		void		handleData(User &user, const std::string& data);
 		void		parseLine(User &user, std::string line);
+		void		sendToAllJoinedChannel(User &user, std::string msg);
 
 		void		sendChannelUsers(std::vector<User> channelUsers, std::string msg, User user) const; 
 

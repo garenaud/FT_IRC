@@ -1,15 +1,31 @@
 #include "User.hpp"
 #include "Server.hpp"
 
+<<<<<<< HEAD
 User::User(int fd, std::string nick, std::string user) : fd(fd), nick(nick), user(user), passwd("none"), realname("none"), hostname("none"), mode("0"), isRegistered(0) 
 {
 }
 
 User::User(int fd) : fd(fd), nick("none"), user("none"), passwd("none"), realname("none"), hostname("none"), mode("0"), isRegistered(0)
+=======
+User::User(int fd, std::string nick, std::string user) : fd(fd), nick(nick), user(user), passwd("none"), realname("none"), hostname("none"), mode("0"), isRegistered(0), isAlive(true)
 {
 }
 
-User::~User() {}
+User::User(int fd) : fd(fd), nick("none"), user("none"), passwd("none"), realname("none"), hostname("none"), mode("0"), isRegistered(0), isAlive(true)
+>>>>>>> 7cd873ba13ac3faa27fcbee5e6310d6ffd593394
+{
+}
+
+User::~User() 
+{
+	isAlive = false;
+}
+
+bool	User::getIsAlive() const
+{
+	return this->isAlive;
+}
 
 void	User::operator=(User const &src)
 {
@@ -162,6 +178,7 @@ bool	User::isInvited(std::string channelName) const
 	return false;
 }
 
+<<<<<<< HEAD
 void	User::addJoinedChannel(Channel *channel)
 {
 	this->joinedChannels.push_back(channel);
@@ -173,6 +190,19 @@ void	User::removeJoinedChannel(Channel *channel)
 	for (it = this->joinedChannels.begin(); it != this->joinedChannels.end(); ++it)
 	{
 		if (*it == channel)
+=======
+void	User::addJoinedChannel(std::string channelName)
+{
+	this->joinedChannels.push_back(channelName);
+}
+
+void	User::removeJoinedChannel(std::string channelName)
+{
+	std::vector<std::string>::iterator it;
+	for (it = this->joinedChannels.begin(); it != this->joinedChannels.end(); ++it)
+	{
+		if (*it == channelName)
+>>>>>>> 7cd873ba13ac3faa27fcbee5e6310d6ffd593394
 		{
 			this->joinedChannels.erase(it);
 			return;
@@ -180,17 +210,27 @@ void	User::removeJoinedChannel(Channel *channel)
 	}
 }
 
+<<<<<<< HEAD
 std::vector<Channel *>	User::getJoinedChannels()
+=======
+std::vector<std::string>	User::getJoinedChannels() const
+>>>>>>> 7cd873ba13ac3faa27fcbee5e6310d6ffd593394
 {
 	return this->joinedChannels;
 }
 
+<<<<<<< HEAD
 void	User::sendAllJoinedChannels(std::string msg)
+=======
+//a revoir!!!!!!!!!!!!!
+void	User::sendAllJoinedChannels(std::string msg) const
+>>>>>>> 7cd873ba13ac3faa27fcbee5e6310d6ffd593394
 {
 	if (this->joinedChannels.size() == 0)
 		return;
 	else
 	{
+<<<<<<< HEAD
 		for (int i = 0; i != static_cast<int>(this->joinedChannels.size()); i++)
 		{
 			std::vector<User> channelUsers = this->joinedChannels[i]->getUsers();
@@ -199,6 +239,12 @@ void	User::sendAllJoinedChannels(std::string msg)
 				if (channelUsers[i].getNick() != this->nick)
 					send(channelUsers[i].getFd(), msg.c_str(), msg.length(), 0);
 			}
+=======
+		std::vector<std::string>::const_iterator it;
+		for (it = this->joinedChannels.begin(); it != this->joinedChannels.end(); ++it)
+		{
+			send(fd, msg.c_str(), msg.length(), 0);
+>>>>>>> 7cd873ba13ac3faa27fcbee5e6310d6ffd593394
 		}
 	}
 }

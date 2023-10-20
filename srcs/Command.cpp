@@ -69,7 +69,8 @@ std::string	Command::getParams()
 
 void 	Command::execute(User &user)
 {
-	std::cout << this->command << std::endl;
+	//std::cout << this->command << std::endl;
+	//std::cout << greenbg << "prefix = " << this->prefix << reset << std::endl;
     static const std::string arr[] = {"CAP", "JOIN", "PASS", "PING", "PONG", "NICK", "USER", "WHO", "MODE", "PRIVMSG"};
     for (size_t i = 0; i < 10; i++)
     {
@@ -79,12 +80,12 @@ void 	Command::execute(User &user)
             return;
         }
     }
-	std::cout << this->command << " = Commande inconnue" << std::endl;
+	//std::cout << this->command << " = Commande inconnue" << std::endl;
 }
 // ICI
 void	Command::privmsg(User &user, std::string prefix, std::vector<std::string> params)
 {
-	std::cout << prefix << std::endl;
+	(void)prefix;
 	Channel *chan = server.getChannel(params[0]);
 	std::string	source = user.getNick();
 	std::string	message;
@@ -113,6 +114,7 @@ void	Command::privmsg(User &user, std::string prefix, std::vector<std::string> p
 		}
 	}
 	else if (chan)
+<<<<<<< HEAD
 	{
 		if (!chan->isUser(user))
 		{
@@ -137,6 +139,32 @@ void	Command::privmsg(User &user, std::string prefix, std::vector<std::string> p
 			}
 		}
 	}
+=======
+    {
+        if (!chan->isUser(user))
+        {
+            std::string ERR_NOTONCHANNEL = ":server 442 " + user.getNick() + " " + params[0] + " " + ": You're not on that channel\r\n";
+            send(user.getFd(), ERR_NOTONCHANNEL.c_str(), ERR_NOTONCHANNEL.length(), 0);
+            return;
+        }
+        std::cout << cyan << "\t\t" << chan->getName() <<reset <<std::endl;
+        std::vector<User> users = chan->getUsers();
+        for (size_t i = 0; i < users.size(); i++)
+        {
+            if (user.getNick() != users[i].getNick())
+            {
+                std::string    msg = ":" + user.getNick() +" PRIVMSG " + chan->getName() + " :" + message +"\r\n";
+                if (i==0)
+                {
+                    std::cout << "PRIVMSG channel case\n";
+                    std::cout << "users.size() = "<< users.size() <<" \n";
+                }
+                std::cout << red << "\t\t\t" << msg << reset<< std::endl;
+                send(users[i].getFd(), msg.c_str(), msg.length(), 0);
+            }
+        }
+    }
+>>>>>>> 7cd873ba13ac3faa27fcbee5e6310d6ffd593394
 	else
 	{
 		std::string err = ":server 401 " + user.getNick() + " " + params[0] + " " + ": No such nick/channel\r\n";// :
@@ -148,31 +176,38 @@ void	Command::privmsg(User &user, std::string prefix, std::vector<std::string> p
 void	Command::ping(User &user, std::string prefix, std::vector<std::string> params)
 {
 	(void)prefix;
- 	if (params.size() >= 0)
+	std::string pong;
+	if (params.size() > 0) 
 	{
-		//std::cout << "PING = " << params[0] << std::endl;
+		pong = "PONG " + params[0] + "\r\n";
 	}
-	std::string pong = "PONG :localhost 6667\r\n";
-	send(user.getFd(), pong.c_str(), pong.length(), 0);
-	//std::cout << "Pong envoye \n";
+	else 
+	{
+		pong = "PONG :localhost\r\n";
+	}
+	if (user.getIsAlive() == true)
+		send(user.getFd(), pong.c_str(), pong.length(), 0);
 }
 
 void	Command::pong(User &user, std::string prefix, std::vector<std::string> params)
 {
 	(void)prefix;
- 	if (params.size() > 0)
+	(void)params;
+	(void)user;
+/*  	if (params.size() > 0)
 	{
-		//std::cout << "PONG " << params[0] << std::endl;
+		std::cout << "PONG " << params[0] << std::endl;
 		std::string pong = "PONG " + params[0] + "\r\n";
 		send(user.getFd(), pong.c_str(), pong.length(), 0);
 	}
 	std::string pong = "PONG :localhost 6667\r\n";
-	send(user.getFd(), pong.c_str(), pong.length(), 0);
+	send(user.getFd(), pong.c_str(), pong.length(), 0); */
 	//std::cout << "Pong envoye \n";
 }
 
 void    Command::nick(User &user, std::string prefix, std::vector<std::string> params)
 {
+<<<<<<< HEAD
     (void)prefix;
     std::string oldNick = user.getNick();
     std::string nick = params[0];
@@ -222,6 +257,50 @@ void    Command::nick(User &user, std::string prefix, std::vector<std::string> p
         //sendToAllJoinedChannel(user, createMessage);
     }
     //std::cout << user.getFd() << " NICKNAME = " << user.getNick() << std::endl;
+=======
+	(void)prefix;
+	std::string nick = params[0];
+	if (params.size() != 1)
+	{
+		std::cout << "params = " << getParams() << std::endl;
+		std::string err = ":server 461 " + nick + " NICK :Not enough parameters\r\n";
+		send(user.getFd(), err.c_str(), err.length(), 0);
+		return ;
+	}
+	if (nick.length() > 9)
+	{
+		std::string err = ":server 432 " + nick + " NICK :Erroneous nickname\r\n";
+		send(user.getFd(), err.c_str(), err.length(), 0);
+		return ;
+	}
+    std::string originalNick = nick;
+    if (!server.isNickAvailable(nick))
+    {
+ 		std::string err = ":server 433 * " + nick + " :Nickname is already in use \r\n";
+		std::cout << cyan << "nick already in use = " << err << reset << std::endl;
+		send(user.getFd(), err.c_str(), err.length(), 0);
+		return ;
+    }
+	if (server.isNickAvailable(nick) && user.getIsRegistered() == 0)
+	{
+		user.setNick(nick);
+		user.checkRegistration();
+	}
+	if (user.getIsRegistered() == 1)
+	{
+		std::string err = ":server 001 " + user.getNick() + " :Welcome to the Internet Relay Network " + user.getNick() + "\r\n";
+		send(user.getFd(), err.c_str(), err.length(), 0);
+		user.setIsRegistered(2);
+	}
+	else if (user.getIsRegistered() == 2) //(!prefix.empty())
+	{
+		std::string oldNick = user.getNick();
+		user.setNick(nick);
+		std::string createMessage = ":" + oldNick + "!" + user.getUser() + "@" + user.getHostname() + " NICK " + user.getNick() + "\r\n";
+		std::cout << "createMessage = " << createMessage << std::endl;
+		send(user.getFd(), createMessage.c_str(), createMessage.length(), 0);
+	}
+>>>>>>> 7cd873ba13ac3faa27fcbee5e6310d6ffd593394
 }
 
 void	Command::user(User &user, std::string prefix, std::vector<std::string> params)
@@ -255,10 +334,10 @@ void	Command::pass(User &user, std::string prefix, std::vector<std::string> para
 	{
 		std::string err = ":server 461 " + user.getNick() + " PASS :Not enough parameters\r\n";
 		send(user.getFd(), err.c_str(), err.length(), 0);
+		server.del_from_pfds(server.getPfdsIndex(user.getFd()));
 		return ;
 	}
-	//std::cout << "serveur passwd = " << server.getPasswd() << " passwd = " << params[0] << std::endl;
- 	if (user.getIsRegistered() >= 1)
+ 	if (user.getIsRegistered() >= 2)
 	{
 		std::string err = ":server 462 " + user.getNick() + " :You may not reregister\r\n";
 		send(user.getFd(), err.c_str(), err.length(), 0);
@@ -284,9 +363,9 @@ void	Command::cap(User &user, std::string prefix, std::vector<std::string> param
 {
 	if (prefix.length() > 0)
 	{
-		std::cout << "PREFIX = " << prefix << std::endl;
+		//std::cout << "PREFIX = " << prefix << std::endl;
 	}
-	if (params.size() >= 0)
+	if (params.size() <= 0)
 	{
 		std::string err = ":server 461 " + user.getNick() + " CAP :Not enough parameters\r\n";
 		send(user.getFd(), err.c_str(), err.length(), 0);
@@ -296,9 +375,8 @@ void	Command::cap(User &user, std::string prefix, std::vector<std::string> param
 	std::string cap = params[1];
 	if (subcommand == "LS")
 	{
-		//std::string cap_msg = ":localhost CAP " + user.getNick() + " LS :cap-notify\r\n";
-		std::cout << red << "CAP = " << cap << std::endl;
-		std::string cap_end = ":localhost CAP * LS :multi-prefix sasl\r\n";
+		std::string cap_end = ":localhost CAP * ACK :none\r\n";
+		//std::string cap_end = ":localhost CAP * LS :multi-prefix sasl\r\n";
 		send(user.getFd(), cap_end.c_str(), cap_end.length(), 0);
 	}
 	else if (subcommand == "REQ")
@@ -439,7 +517,6 @@ void Command::parseLine(User &user, std::string line)
 	std::istringstream iss(line);
 	std::string prefix, command;
 	std::vector<std::string> params;
-	user.getFd();
 	if (line[0] == ':')
 	{
 		iss >> prefix;
@@ -476,6 +553,27 @@ void	Command::who(User &user, std::string prefix, std::vector<std::string> param
 	server.displayUsers();
 }
 
+void	Command::sendToAllJoinedChannel(User &user, std::string msg)
+{
+	if (user.getJoinedChannels().size() == 0)
+	{
+		//pour le debug (du moment qu'on a pas encore de channel) a remplacer par le return
+		for (size_t i = 0; i < server.getUser().size(); ++i)
+		{
+			send(server.getUser()[i].getFd(), msg.c_str(), msg.length(), 0);
+		}
+		//return;
+	}
+	else
+	{
+		std::vector<std::string>::const_iterator it;
+		for (it = user.getJoinedChannels().begin(); it != user.getJoinedChannels().end(); ++it)
+		{
+			std::vector<User> channelUsers = server.getChannel(*it)->getUsers();
+			sendChannelUsers(channelUsers, msg);
+		}
+	}
+}
 void	Command::mode(User &user, std::string prefix, std::vector<std::string> params)
 {
 	////// GENERAL CHECKS ////////////////////////////////////////////////////////////////////////////////////
