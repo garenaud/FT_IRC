@@ -1,128 +1,89 @@
 #ifndef RPL_ERR_HPP
 #define RPL_ERR_HPP
 
+#include "Server.hpp"
 
-# define user_id(nickname, username) (":" + nickname + "!" + username + "@localhost")
-std::string user_id(const std::string& nickname, const std::string& username)
-{
-	return ":" + nickname + "!" + username + "@localhost";
-}
+std::string RPL_WELCOME(const std::string username, const std::string nickname);
 
+std::string ERR_UNKNOWNCOMMAND(const std::string client, const std::string command);
 
-# define RPL_WELCOME(user_id, nickname) (":localhost 001 " + nickname + " :Welcome to the Internet Relay Network " + user_id + "\r\n")
-std::string RPL_WELCOME(const std::string& user_id, const std::string& nickname)
-{
-	return ":localhost 001 " + nickname + " :Welcome to the Internet Relay Network " + user_id + "\r\n";
-}
+std::string ERR_NEEDMOREPARAMS(const std::string client, const std::string command);
 
+std::string ERR_NOSUCHCHANNEL(const std::string client, const std::string channel);
 
+std::string ERR_NOTONCHANNEL(const std::string client, const std::string channel);
 
-# define RPL_YOURHOST(client, servername, version) (":localhost 002 " + client + " :Your host is " + servername + " (localhost), running version " + version + "\r\n")
-# define RPL_CREATED(client, datetime) (":localhost 003 " + client + " :This server was created " + datetime + "\r\n")
-# define RPL_MYINFO(client, servername, version, user_modes, chan_modes, chan_param_modes) (":localhost 004 " + client + " " + servername + " " + version + " " + user_modes + " " + chan_modes + " " + chan_param_modes + "\r\n")
-# define RPL_ISUPPORT(client, tokens) (":localhost 005 " + client + " " + tokens " :are supported by this server\r\n")
+std::string ERR_USERONCHANNEL(const std::string nick, const std::string channel);
 
-# define ERR_UNKNOWNCOMMAND(client, command) (":localhost 421 " + client + " " + command + " :Unknown command\r\n")
+std::string RPL_INVITING(const std::string client, const std::string username, const std::string nickname, const std::string channel);
 
-// INVITE
-# define ERR_NEEDMOREPARAMS(client, command) (":localhost 461 " + client + " " + command + " :Not enough parameters.\r\n")
-# define ERR_NOSUCHCHANNEL(client, channel) (":localhost 403 " + client + " #" + channel + " :No such channel\r\n")
-# define ERR_NOTONCHANNEL(client, channel) (":localhost 442 " + client + " #" + channel + " :The user is not on this channel.\r\n")
-# define ERR_USERONCHANNEL(client, nick, channel) (":localhost 443 " + client + " " + nick + " #" + channel + " :Is already on channel\r\n")
-# define RPL_INVITING(user_id, client, nick, channel) (user_id + " 341 " + client + " " + nick + " #" + channel + "\r\n")
-# define RPL_INVITE(user_id, invited, channel) (user_id + " INVITE " + invited + " #" + channel + "\r\n")
+std::string RPL_INVITE(std::string nickname, const std::string username, const std::string invited, const std::string channel);
 
-// JOIN
-# define RPL_JOIN(user_id, channel) (user_id + " JOIN :#" +  channel + "\r\n")
-# define ERR_BANNEDFROMCHAN(client, channel) ("474 " + client + " #" + channel + " :Cannot join channel (+b)\r\n")
-# define ERR_BADCHANNELKEY(client, channel) ("475 " + client + " #" + channel + " :Cannot join channel (+k)\r\n")
+std::string RPL_JOIN(const std::string nickname, const std::string username, const std::string channel);
 
-// KICK
-# define ERR_USERNOTINCHANNEL(client, nickname, channel) ("441 " + client + " " + nickname + " #" + channel + " :They aren't on that channel\r\n")
-// # define ERR_CHANOPRIVSNEEDED(client, channel) ("482 " + client + " #" +  channel + " :You're not channel operator\r\n")
-# define RPL_KICK(user_id, channel, kicked, reason) (user_id + " KICK #" + channel + " " + kicked + " " + reason + "\r\n")
+std::string ERR_BANNEDFROMCHAN(const std::string client, const std::string channel, const std::string mode);
 
-// KILL
-# define ERR_NOPRIVILEGES(client) ("481 " + client + " :Permission Denied- You're not an IRC operator\r\n")
-# define RPL_KILL(user_id, killed, comment) (user_id + " KILL " + killed + " " + comment + "\r\n")
+std::string ERR_BADCHANNELKEY(const std::string client, const std::string channel);
 
-// MODE
-/* user mode */
-#define MODE_USERMSG(client, mode) (":" + client + " MODE " + client + " :" + mode + "\r\n")
-#define ERR_UMODEUNKNOWNFLAG(client) (":localhost 501 " + client + " :Unknown MODE flag\r\n")
-#define ERR_USERSDONTMATCH(client) ("502 " + client + " :Cant change mode for other users\r\n")
-#define RPL_UMODEIS(client, mode) (":localhost 221 " + client + " " + mode + "\r\n")
-/* channel mode */
-#define MODE_CHANNELMSG(channel, mode) (":localhost MODE #" + channel + " " + mode + "\r\n")
-#define MODE_CHANNELMSGWITHPARAM(channel, mode, param) (":localhost MODE #" + channel + " " + mode + " " + param + "\r\n")
-#define RPL_CHANNELMODEIS(client, channel, mode) (":localhost 324 " + client + " #" + channel + " " + mode + "\r\n")
-#define RPL_CHANNELMODEISWITHKEY(client, channel, mode, password) (":localhost 324 " + client + " #" + channel + " " + mode + " " + password + "\r\n")
-#define ERR_CANNOTSENDTOCHAN(client, channel) ("404 " + client + " #" + channel + " :Cannot send to channel\r\n")
-#define ERR_CHANNELISFULL(client, channel) ("471 " + client + " #" + channel + " :Cannot join channel (+l)\r\n")
-#define ERR_CHANOPRIVSNEEDED(client, channel) (":localhost 482 " + client + " #" + channel + " :You're not channel operator\r\n")
-#define ERR_INVALIDMODEPARAM(client, channel, mode, password) ("696 " + client + " #" + channel + " " + mode + " " + password + " : password must only contained alphabetic character\r\n")
-// RPL_ERR a broadcoast quand user pas +v ou operator veut parler
-      // dans notre cas c'était tiff (client) qui voulait send a message
-      // :lair.nl.eu.dal.net 404 tiff #pop :Cannot send to channel
-#define RPL_ADDVOICE(nickname, username, channel, mode, param) (":" + nickname + "!" + username + "@localhost MODE #" + channel + " " + mode + " " + param + "\r\n")
+std::string ERR_USERNOTINCHANNEL(const std::string client, const std::string nickname, const std::string channel);
 
-// MOTD
-#define ERR_NOSUCHSERVER(client, servername) (":localhost 402 " + client + " " + servername + " :No such server\r\n")
-#define ERR_NOMOTD(client) (":localhost 422 " + client + " :MOTD File is missing\r\n")
-#define RPL_MOTDSTART(client, servername) (":localhost 375 " + client + " :- " + servername + " Message of the day - \r\n")
-#define RPL_MOTD(client, motd_line) (":localhost 372 " + client + " :" + motd_line + "\r\n")
-#define RPL_ENDOFMOTD(client) (":localhost 376 " + client + " :End of /MOTD command.\r\n")
+std::string ERR_CHANOPRIVSNEEDED(const std::string client, const std::string channel);
 
+std::string RPL_KICK(const std::string nickname, const std::string username, const std::string channel, const std::string kicked, const std::string reason);
 
-// NAMES
-# define RPL_NAMREPLY(client, symbol, channel, list_of_nicks) (":localhost 353 " + client + " " + symbol + " #" + channel + " :" + list_of_nicks + "\r\n")
-# define RPL_ENDOFNAMES(client, channel) (":localhost 366 " + client + " #" + channel + " :End of /NAMES list.\r\n")
+std::string MODE_USERMSG(const std::string client, const std::string mode);
 
-// NICK
-# define ERR_NONICKNAMEGIVEN(client) (":localhost 431 " + client + " :There is no nickname.\r\n")
-# define ERR_ERRONEUSNICKNAME(client, nickname) (":localhost 432 " + client + " " + nickname + " :Erroneus nickname\r\n")
-# define ERR_NICKNAMEINUSE(client, nickname) (":localhost 433 " + client + " " + nickname + " :Nickname is already in use.\r\n")
-# define RPL_NICK(oclient, uclient, client) (":" + oclient + "!" + uclient + "@localhost NICK " +  client + "\r\n")
+std::string ERR_UMODEUNKNOWNFLAG(const std::string client);
 
-// NOTICE
-# define RPL_NOTICE(nick, username, target, message) (":" + nick + "!" + username + "@localhost NOTICE " + target + " " + message + "\r\n")
+std::string ERR_USERSDONTMATCH(const std::string client);
 
-// OPER
-# define ERR_NOOPERHOST(client) ("491 " + client + " :No O-lines for your host\r\n")
-# define RPL_YOUREOPER(client) ("381 " + client + " :You are now an IRC operator\r\n")
+std::string RPL_UMODEIS(const std::string client, const std::string mode);
 
-// PART
-# define RPL_PART(user_id, channel, reason) (user_id + " PART #" + channel + " " + (reason.empty() ? "." : reason ) + "\r\n")
+std::string MODE_CHANNELMSG(const std::string channel, const std::string mode);
 
-// PASS
-# define ERR_PASSWDMISMATCH(client) (":localhost 464 " + client + " :Password incorrect.\r\n")
+std::string MODE_CHANNELMSGWITHPARAM(const std::string channel, const std::string mode, const std::string param);
 
-// PING
-# define RPL_PONG(user_id, token) (user_id + " PONG " + token + "\r\n")
+std::string RPL_CHANNELMODEIS(const std::string client, const std::string channel, const std::string mode);
 
-// QUIT
-# define RPL_QUIT(user_id, reason) (user_id + " QUIT :Quit: " + reason + "\r\n")
-# define RPL_ERROR(user_id, reason) (user_id + " ERROR :" + reason + "\r\n")
+std::string RPL_CHANNELMODEISWITHKEY(const std::string client, const std::string channel, const std::string mode, const std::string password);
 
-// PRIVMSG
-# define ERR_NOSUCHNICK(client, target) ("401 " + client + " " + target + " :No such nick/channel\r\n")
-# define ERR_NORECIPIENT(client) ("411 " + client + " :No recipient given PRIVMSG\r\n")
-# define ERR_NOTEXTTOSEND(client) ("412 " + client + " :No text to send\r\n")
-# define RPL_PRIVMSG(nick, username, target, message) (":" + nick + "!" + username + "@localhost PRIVMSG " + target + " " + message + "\r\n")
+std::string ERR_CANNOTSENDTOCHAN(const std::string client, const std::string channel);
 
-// TOPIC
-# define RPL_TOPIC(client, channel, topic) (":localhost 332 " + client + " #" + channel + " " + topic + "\r\n")
-# define RPL_NOTOPIC(client, channel) (":localhost 331 " + client + " #" + channel + " :No topic is set\r\n")
+std::string ERR_CHANNELISFULL(const std::string client, const std::string channel);
 
-// USER
-# define ERR_ALREADYREGISTERED(client) (":localhost 462 " + client + " :You may not reregister.\r\n")
+std::string ERR_INVALIDMODEPARAM(const std::string client, const std::string channel, const std::string mode);
 
+std::string RPL_ADDVOICE(const std::string nickname, const std::string username, const std::string channel, const std::string mode, const std::string param);
 
+std::string RPL_NAMREPLY(const std::string client, const std::string channel, const std::string list_of_nicks);
 
+std::string RPL_ENDOFNAMES(const std::string client, const std::string channel);
 
+std::string ERR_NONICKNAMEGIVEN(const std::string client);
 
+std::string ERR_ERRONEUSNICKNAME(const std::string client, const std::string nickname);
 
+std::string ERR_NICKNAMEINUSE(const std::string client, const std::string nickname);
 
+std::string RPL_NICK(const std::string oclient, const std::string uclient, const std::string client);
+
+std::string ERR_PASSWDMISMATCH(const std::string client);
+
+std::string RPL_PONG(const std::string nickname, const std::string username, const std::string token);
+
+std::string ERR_NOSUCHNICK(const std::string client, const std::string target);
+
+std::string ERR_NORECIPIENT(const std::string client);
+
+std::string ERR_NOTEXTTOSEND(const std::string client);
+
+std::string RPL_PRIVMSG(const std::string nick, const std::string username, const std::string target, const std::string message);
+
+std::string RPL_TOPIC(const std::string client, const std::string channel, const std::string topic);
+
+std::string RPL_NOTOPIC(const std::string client, const std::string channel);
+
+std::string ERR_ALREADYREGISTERED(const std::string client);
 
 
 #endif

@@ -155,86 +155,86 @@ void	Msg::split2(std::string sep)
 }
 
 
-void	Msg::split(std::string sep)
-{// deprecated
+// void	Msg::split(std::string sep)
+// {// deprecated
 
-	std::string tmp(received_message[0].buffer_in);
-	tmp = tmp.substr(0, this->aMessage.recv_size); // **
+// 	std::string tmp(received_message[0].buffer_in);
+// 	tmp = tmp.substr(0, this->aMessage.recv_size); // **
 
-	size_t	occurence = 0;
-	size_t	pos = 0;
-	std::vector<int>	block;
-	block.push_back(0);
-	while ((pos = tmp.find(sep, pos )) != std::string::npos)
-	{
-		++ occurence;
-		if (pos < tmp.length())
-		{
-			block.push_back(pos);
-		}
-		++ pos;
-	}
+// 	size_t	occurence = 0;
+// 	size_t	pos = 0;
+// 	std::vector<int>	block;
+// 	block.push_back(0);
+// 	while ((pos = tmp.find(sep, pos )) != std::string::npos)
+// 	{
+// 		++ occurence;
+// 		if (pos < tmp.length())
+// 		{
+// 			block.push_back(pos);
+// 		}
+// 		++ pos;
+// 	}
 
-	block.push_back(received_message[0].recv_size);
-	// partie split
-	for (size_t i = 0; i < block.size() - 1; ++i)
-	{
-		size_t	start;
-		size_t	end = block[i+1];
-		if (i == 0)
-			start = 0;
-		else {start = block[i] + 2;};
+// 	block.push_back(received_message[0].recv_size);
+// 	// partie split
+// 	for (size_t i = 0; i < block.size() - 1; ++i)
+// 	{
+// 		size_t	start;
+// 		size_t	end = block[i+1];
+// 		if (i == 0)
+// 			start = 0;
+// 		else {start = block[i] + 2;};
 
-		std::string tmp1 = tmp.substr(start, end - start);
-		if (end - start != 0)
-		{
-			// transfert vers outgoing message.
-			this->uniqueMessage.accepted_socket = this->aMessage.accepted_socket;
-			this->uniqueMessage.user = this->aMessage.user;
-			this->uniqueMessage.message = tmp1;
-			this->uniqueMessage.message_size = tmp1.length();
-			this->message_list.push_back(this->uniqueMessage);
-		//	occurence--;
-		// test effacement queue incoming segfault
-		//	std::cout << "\n Trf  avant " << red << this->received_message.size() << std::endl;
-		//	if (occurence == 0)
-		//		this->received_message.pop_front();// foire
-		//	std::cout << "\n Trf apres " << red << this->received_message.size() << std::endl;
-		//	incomingCount--;// calcul faux
-		//
-		}
-		if ((i == block.size() - 1) && end < tmp.length() -2)
-		{
-			std::cout << red << "message incomplet\n" << reset << std::endl;
-			for (size_t j = start; j < tmp.length(); ++j)
-			{
-				this->aMessage.buffer.push_back(tmp1[j]);
-			}
-			std::cout << red << this->aMessage.buffer.size() << reset << std::endl;
-		}
-		std::cout << std::endl << magenta << tmp1 << std::endl;//**
-	}
+// 		std::string tmp1 = tmp.substr(start, end - start);
+// 		if (end - start != 0)
+// 		{
+// 			// transfert vers outgoing message.
+// 			this->uniqueMessage.accepted_socket = this->aMessage.accepted_socket;
+// 			this->uniqueMessage.user = this->aMessage.user;
+// 			this->uniqueMessage.message = tmp1;
+// 			this->uniqueMessage.message_size = tmp1.length();
+// 			this->message_list.push_back(this->uniqueMessage);
+// 		//	occurence--;
+// 		// test effacement queue incoming segfault
+// 		//	std::cout << "\n Trf  avant " << red << this->received_message.size() << std::endl;
+// 		//	if (occurence == 0)
+// 		//		this->received_message.pop_front();// foire
+// 		//	std::cout << "\n Trf apres " << red << this->received_message.size() << std::endl;
+// 		//	incomingCount--;// calcul faux
+// 		//
+// 		}
+// 		if ((i == block.size() - 1) && end < tmp.length() -2)
+// 		{
+// 			std::cout << red << "message incomplet\n" << reset << std::endl;
+// 			for (size_t j = start; j < tmp.length(); ++j)
+// 			{
+// 				this->aMessage.buffer.push_back(tmp1[j]);
+// 			}
+// 			std::cout << red << this->aMessage.buffer.size() << reset << std::endl;
+// 		}
+// 		std::cout << std::endl << magenta << tmp1 << std::endl;//**
+// 	}
 
-	for (size_t i = 0; i < this->message_list.size(); ++i)
-	{
-		std::cout << i << "   "<<red << this->message_list[i].message << reset << std::endl;
-	}
-	for (std::vector<int>::const_iterator i = block.begin(); i != block.end(); ++i)
-	{
-		std::cout << cyan << *i << ' ';
-	}
+// 	for (size_t i = 0; i < this->message_list.size(); ++i)
+// 	{
+// 		std::cout << i << "   "<<red << this->message_list[i].message << reset << std::endl;
+// 	}
+// 	for (std::vector<int>::const_iterator i = block.begin(); i != block.end(); ++i)
+// 	{
+// 		std::cout << cyan << *i << ' ';
+// 	}
 
-	//std::cout << yellow << occurence << reset << std::endl;
-	block.clear();
-	this->received_message.erase(received_message.begin());//
+// 	//std::cout << yellow << occurence << reset << std::endl;
+// 	block.clear();
+// 	this->received_message.erase(received_message.begin());//
 
-	/*for (size_t i = 0; i < 512; ++i)
-	{
-		received_message[0].buffer_in[i] = '\0';
-	}*/
+// 	/*for (size_t i = 0; i < 512; ++i)
+// 	{
+// 		received_message[0].buffer_in[i] = '\0';
+// 	}*/
 
 
-}
+// }
 
 void	Msg::test(void)
 {

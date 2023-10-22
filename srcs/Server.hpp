@@ -4,6 +4,7 @@
 #include "User.hpp"
 #include "Command.hpp"
 #include "Channel.hpp"
+#include "RPL_ERR.hpp"
 #include <iostream>
 #include <sstream>
 #include <cstring>

@@ -254,10 +254,8 @@ void	Channel::addUser(User &user)
 {
 	if (this->isUser(user))
 	{
-		std::string err = ":server 433 * " + user.getNick() + " :Nickname is already in use \r\n";
-        std::cout << cyan << "nick already in use = " << err << reset << std::endl;
-        send(user.getFd(), err.c_str(), err.length(), 0);
-        return ;
+		send(user.getFd(), ERR_USERONCHANNEL(user.getNick(), this->_name).c_str(), ERR_USERONCHANNEL(user.getNick(), this->_name).length(), 0);
+		return ;
 	}
 	else
 	{

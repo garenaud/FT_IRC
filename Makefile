@@ -5,7 +5,7 @@ CC =  c++
 RM = 		@rm -rf
 
 
-FLAGS = -g -Wall -Werror -Wextra -std=c++98 #-fsanitize=address #-pedantic 
+FLAGS = -g -Wall -Werror -Wextra -std=c++98 -fsanitize=address #-pedantic 
 
 CFILES =	main.cpp \
 			srcs/User.cpp \
@@ -13,6 +13,7 @@ CFILES =	main.cpp \
 			srcs/Server.cpp \
 			srcs/Command.cpp \
 			srcs/Channel.cpp \
+			srcs/RPL_ERR.cpp \
 
 
 
