@@ -264,7 +264,7 @@ void	Channel::addUser(User &user)
 	}
 }
 
-void	Channel::inviteUser(User &user, User chanop)
+void	Channel::inviteUser(User &user, User &chanop)
 {
 	if (this->isChanops(chanop))
 	{
@@ -273,7 +273,7 @@ void	Channel::inviteUser(User &user, User chanop)
 	}
 }
 
-void	Channel::addChanops(User &user, User chanop)
+void	Channel::addChanops(User &user, User &chanop)
 {
 	if (this->isChanops(chanop))
 	{
@@ -295,7 +295,7 @@ void	Channel::rmChanops(User &user)
 }
 
 
-void	Channel::kickUser(User &user, User chanop)
+void	Channel::kickUser(User &user, User &chanop)
 {
 	if (this->isChanops(chanop))
 	{
@@ -314,7 +314,7 @@ void	Channel::kickUser(User &user, User chanop)
 }
 
 
-void	Channel::kickChanops(User &user, User chanop)
+void	Channel::kickChanops(User &user, User &chanop)
 {
 	if (this->isChanops(chanop))
 	{
