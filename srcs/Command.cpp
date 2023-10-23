@@ -22,7 +22,10 @@ const Command::CmdFunc Command::cmdArr[] = {&Command::cap,
 											&Command::user,
 											&Command::who,
 											&Command::mode,
-                                            &Command::privmsg};
+											&Command::privmsg,
+											&Command::topic,
+											&Command::invite,
+											&Command::kick};
 Command::~Command() {}
 
 void		Command::setPrefix(std::string prefix)
@@ -65,8 +68,8 @@ void 	Command::execute(User &user)
 {
 	//std::cout << this->command << std::endl;
 	//std::cout << greenbg << "prefix = " << this->prefix << reset << std::endl;
-    static const std::string arr[] = {"CAP", "JOIN", "PASS", "PING", "PONG", "NICK", "USER", "WHO", "MODE", "PRIVMSG"};
-    for (size_t i = 0; i < 10; i++)
+    static const std::string arr[] = {"CAP", "JOIN", "PASS", "PING", "PONG", "NICK", "USER", "WHO", "MODE", "PRIVMSG", "TOPIC", "INVITE", "KICK"};
+    for (size_t i = 0; i < 13; i++)
     {
         if (this->command == arr[i])
         {
@@ -110,7 +113,7 @@ void	Command::privmsg(User &user, std::string prefix, std::vector<std::string> p
 	{
 		if (!chan->isUser(user))
 		{
-			send(user.getFd(), ERR_NOTONCHANNEL(user.getNick(), params[0]).c_str(), ERR_NOTONCHANNEL(user.getNick(), params[0]).length(), 0);
+			send(user.getFd(), ERR_NOTONCHANNEL(user.getNick(), user.getNick(), params[0]).c_str(), ERR_NOTONCHANNEL(user.getNick(), user.getNick(), params[0]).length(), 0);
 			return;
 		}
 		std::cout << cyan << "\t\t" << chan->getName() <<reset <<std::endl;
@@ -650,4 +653,211 @@ bool	checkPassword(std::string passWord)
 			return false;
 	}
 	return true;
+}
+
+void	Command::topic(User &user, std::string prefix, std::vector<std::string> params)
+{
+	(void)prefix;
+	if (params.size() < 1)
+	{
+		send(user.getFd(), ERR_NEEDMOREPARAMS(user.getNick(), "TOPIC").c_str(), ERR_NEEDMOREPARAMS(user.getNick(), "MODE").length(), 0);
+		return ;
+	}
+	std::string channel = params[0];
+	if (server.getChannel(channel) == nullptr)
+	{
+		send(user.getFd(), ERR_NOSUCHCHANNEL(user.getNick(), channel).c_str(), ERR_NOSUCHCHANNEL(user.getNick(), channel).length(), 0);
+		return ;
+	}
+	if (!server.getChannel(channel)->isUser(user))
+	{
+		send(user.getFd(), ERR_USERNOTINCHANNEL(user.getNick(), user.getNick(), channel).c_str(), ERR_USERNOTINCHANNEL(user.getNick(), user.getNick(), channel).length(), 0);
+		return;
+	}
+	if (params.size() == 1)
+	{
+		if (server.getChannel(channel)->getTopic() == "")
+		{
+			send(user.getFd(), RPL_NOTOPIC(user.getNick(), channel).c_str(), RPL_NOTOPIC(user.getNick(), channel).length(), 0);
+			return;
+		}
+		else
+		{
+			send(user.getFd(), RPL_TOPIC(user.getNick(), channel, server.getChannel(channel)->getTopic()).c_str(), RPL_TOPIC(user.getNick(), channel, server.getChannel(channel)->getTopic()).length(), 0);
+			return;
+		}
+	}
+	else
+	{
+		if (!server.getChannel(channel)->isChanops(user))
+		{
+			send(user.getFd(), ERR_CHANOPRIVSNEEDED(user.getNick(), channel).c_str(), ERR_CHANOPRIVSNEEDED(user.getNick(), channel).length(), 0);
+			return ;
+		}
+		if (params.size() > 1)
+		{
+			if (params[1][0] != ':')
+			{
+				send(user.getFd(), ERR_NEEDMOREPARAMS(user.getNick(), "TOPIC").c_str(), ERR_NEEDMOREPARAMS(user.getNick(), "MODE").length(), 0);
+				return ;
+			}
+			if (params[1] == ":" && params.size() == 2)
+			{
+				server.getChannel(channel)->setRmMode("-t");
+				server.getChannel(channel)->setTopic("");
+				send(user.getFd(), RPL_NOTOPIC(user.getNick(), channel).c_str(), RPL_NOTOPIC(user.getNick(), channel).length(), 0);
+				sendChannelUsers(server.getChannel(channel)->getUsers(), RPL_NOTOPIC(user.getNick(), channel), user);
+				return;
+			}
+			else
+			{
+				server.getChannel(channel)->setRmMode("+t");
+				std::string topic = "";
+				for (size_t i = 1; i < params.size(); i++)
+					topic += (params[i] + " ");
+				server.getChannel(channel)->setTopic(topic);
+				send(user.getFd(), RPL_TOPIC(user.getNick(), channel, server.getChannel(channel)->getTopic()).c_str(), RPL_TOPIC(user.getNick(), channel, server.getChannel(channel)->getTopic()).length(), 0);
+				sendChannelUsers(server.getChannel(channel)->getUsers(), RPL_TOPIC(user.getNick(), channel, server.getChannel(channel)->getTopic()), user);
+				return;
+			}
+		}
+	}
+}
+
+
+void	Command::invite(User &user, std::string prefix, std::vector<std::string> params)
+{
+	(void)prefix;
+	if (params.size() != 2)
+	{
+		send(user.getFd(), ERR_NEEDMOREPARAMS(user.getNick(), "TOPIC").c_str(), ERR_NEEDMOREPARAMS(user.getNick(), "MODE").length(), 0);
+		return ;
+	}
+	// check si p[0] = user
+	if (!server.getUserByNick(params[0])->getIsRegistered())
+	{
+		send(user.getFd(), ERR_NOSUCHNICK(user.getNick(), params[0]).c_str(), ERR_NOSUCHNICK(user.getNick(), params[0]).length(), 0);
+		return;
+	}
+	// check si p[1] = channel
+	if (server.getChannel(params[1]) == nullptr)
+	{
+		send(user.getFd(), ERR_NOSUCHCHANNEL(user.getNick(), params[1]).c_str(), ERR_NOSUCHCHANNEL(user.getNick(), params[1]).length(), 0);
+		return ;
+	}
+	else
+	{
+		// check si user est dans chan
+		if (!server.getChannel(params[1])->isUser(user))
+		{
+			send(user.getFd(), ERR_USERNOTINCHANNEL(user.getNick(), user.getNick(), params[1]).c_str(), ERR_USERNOTINCHANNEL(user.getNick(), user.getNick(), params[1]).length(), 0);
+			return;
+		}
+		else
+		{
+			// check si user est chanops
+			if (!server.getChannel(params[1])->isChanops(user))
+			{
+				send(user.getFd(), ERR_CHANOPRIVSNEEDED(user.getNick(), params[1]).c_str(), ERR_CHANOPRIVSNEEDED(user.getNick(), params[1]).length(), 0);
+				return ;
+			}
+			else
+			{
+				//check si userparam est kick
+				if (server.getChannel(params[1])->isKicked(*server.getUserByNick(params[0])))
+				{
+					// jsp l'erreur ERR_
+					return;
+				}
+				else
+				{
+					//check si userparam est dans chan
+					if (server.getChannel(params[1])->isUser(*server.getUserByNick(params[0])))
+					{
+						send(user.getFd(), ERR_USERONCHANNEL(user.getNick(), params[0], params[1]).c_str(), ERR_USERONCHANNEL(user.getNick(), params[0], params[1]).length(), 0);
+						return ;
+					}
+					else
+					{
+						//check si userparam est deja invite
+						if (!server.getUserByNick(params[0])->isInvited(params[1]))
+							server.getUserByNick(params[0])->addInvitedChannel(params[1]);
+						send(user.getFd(), RPL_INVITE(user.getNick(), user.getUser(), server.getUserByNick(params[0])->getNick(), params[1]).c_str(), RPL_INVITE(user.getNick(), user.getUser(), server.getUserByNick(params[0])->getNick(), params[1]).length(), 0);
+						sendChannelUsers(server.getChannel(params[1])->getUsers(), RPL_INVITE(user.getNick(), user.getUser(), server.getUserByNick(params[0])->getNick(), params[1]), user);
+						return;
+					}
+				}
+			}
+		}
+	}
+}
+
+void	Command::kick(User &user, std::string prefix, std::vector<std::string> params)
+{
+	(void)prefix;
+	(void)prefix;
+	if (params.size() < 2)
+	{
+		send(user.getFd(), ERR_NEEDMOREPARAMS(user.getNick(), "KICK").c_str(), ERR_NEEDMOREPARAMS(user.getNick(), "MODE").length(), 0);
+		return ;
+	}
+	// check si p[0] = channel
+	if (server.getChannel(params[0]) == nullptr)
+	{
+		send(user.getFd(), ERR_NOSUCHCHANNEL(user.getNick(), params[0]).c_str(), ERR_NOSUCHCHANNEL(user.getNick(), params[0]).length(), 0);
+		return ;
+	}
+	// check si p[1] = user
+	if (!server.getUserByNick(params[1])->getIsRegistered())
+	{
+		send(user.getFd(), ERR_NOSUCHNICK(user.getNick(), params[1]).c_str(), ERR_NOSUCHNICK(user.getNick(), params[1]).length(), 0);
+		return;
+	}
+	else
+	{
+		// check si user est dans chan
+		if (!server.getChannel(params[0])->isUser(user))
+		{
+			send(user.getFd(), ERR_USERNOTINCHANNEL(user.getNick(), user.getNick(), params[0]).c_str(), ERR_USERNOTINCHANNEL(user.getNick(), user.getNick(), params[0]).length(), 0);
+			return;
+		}
+		else
+		{
+			// check si user est chanops
+			if (!server.getChannel(params[0])->isChanops(user))
+			{
+				send(user.getFd(), ERR_CHANOPRIVSNEEDED(user.getNick(), params[0]).c_str(), ERR_CHANOPRIVSNEEDED(user.getNick(), params[0]).length(), 0);
+				return ;
+			}
+			else
+			{
+				//check si userparam est dans chan
+				if (!server.getChannel(params[0])->isUser(*server.getUserByNick(params[1])))
+				{
+					send(user.getFd(), ERR_NOTONCHANNEL(user.getNick(), params[1], params[0]).c_str(), ERR_NOTONCHANNEL(user.getNick(), params[1], params[0]).length(), 0);
+					return ;
+				}
+				else
+				{
+					//check si userparam est deja kick
+					if (!server.getChannel(params[0])->isKicked(*server.getUserByNick(params[1])))
+					{
+						if (server.getChannel(params[0])->isChanops(*server.getUserByNick(params[1])))
+							server.getChannel(params[0])->kickChanops(*server.getUserByNick(params[1]), user);
+						server.getChannel(params[0])->kickUser(*server.getUserByNick(params[1]), user);
+						server.getUserByNick(params[1])->removeJoinedChannel(server.getChannel(params[0]));
+					}
+					std::string reason = "";
+					if (params.size() > 2)
+					{
+						for (size_t i = 2; i < params.size(); i++)
+							reason += (params[i] + " ");
+					}
+					send(user.getFd(), RPL_KICK(user.getNick(), user.getUser(), params[0], server.getUserByNick(params[1])->getNick(), reason).c_str(), RPL_KICK(user.getNick(), user.getUser(), params[0], server.getUserByNick(params[1])->getNick(), reason).length(), 0);
+					sendChannelUsers(server.getChannel(params[0])->getUsers(), RPL_INVITE(user.getNick(), user.getUser(), server.getUserByNick(params[1])->getNick(), params[0]), user);
+					return;
+				}
+			}
+		}
+	}
 }

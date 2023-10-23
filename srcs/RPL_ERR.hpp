@@ -11,9 +11,9 @@ std::string ERR_NEEDMOREPARAMS(const std::string client, const std::string comma
 
 std::string ERR_NOSUCHCHANNEL(const std::string client, const std::string channel);
 
-std::string ERR_NOTONCHANNEL(const std::string client, const std::string channel);
+std::string ERR_NOTONCHANNEL(const std::string client, const std::string nick, const std::string channel);
 
-std::string ERR_USERONCHANNEL(const std::string nick, const std::string channel);
+std::string ERR_USERONCHANNEL(const std::string client, const std::string nick, const std::string channel);
 
 std::string RPL_INVITING(const std::string client, const std::string username, const std::string nickname, const std::string channel);
 

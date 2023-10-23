@@ -99,7 +99,10 @@ std::string			Channel::getPassword() const
 
 std::vector<User *>	Channel::getUsers() const
 {
-	return this->_users;
+	if (!this->_users.empty())
+		return this->_users;
+	else
+		return std::vector<User*>();
 }
 
 std::vector<User *>	Channel::getChanops() const
@@ -254,7 +257,7 @@ void	Channel::addUser(User &user)
 {
 	if (this->isUser(user))
 	{
-		send(user.getFd(), ERR_USERONCHANNEL(user.getNick(), this->_name).c_str(), ERR_USERONCHANNEL(user.getNick(), this->_name).length(), 0);
+		send(user.getFd(), ERR_USERONCHANNEL(user.getNick(), user.getNick(), this->_name).c_str(), ERR_USERONCHANNEL(user.getNick(), user.getNick(), this->_name).length(), 0);
 		return ;
 	}
 	else

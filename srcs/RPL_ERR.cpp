@@ -22,14 +22,14 @@ std::string	ERR_NOSUCHCHANNEL(const std::string client, const std::string channe
 	return (":localhost 403 " + client + " " + channel + " :No such channel\r\n");
 }
 
-std::string	ERR_NOTONCHANNEL(const std::string client, const std::string channel)
+std::string	ERR_NOTONCHANNEL(const std::string client, const std::string nick, const std::string channel)
 {
-	return (":localhost 442 " + client + " " + channel + " :The user is not on this channel.\r\n");
+	return (":localhost 442 " + client + " " + nick + " " + channel + " :The user is not on this channel.\r\n");
 }
 
-std::string	ERR_USERONCHANNEL(const std::string nick, const std::string channel)
+std::string	ERR_USERONCHANNEL(const std::string client, const std::string nick, const std::string channel)
 {
-	return (":localhost 443 " + nick + " " + nick + " " + channel + " :Is already on channel\r\n");
+	return (":localhost 443 " + client + " " + nick + " " + channel + " :Is already on channel\r\n");
 }
 
 std::string	RPL_INVITING(const std::string client, const std::string username, const std::string nickname, const std::string channel)

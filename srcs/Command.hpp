@@ -31,8 +31,12 @@ class Command
 		void		join(User &user, std::string prefix, std::vector<std::string> params);
 		void		who(User &user, std::string prefix, std::vector<std::string> params);
 		void		mode(User &user, std::string prefix, std::vector<std::string> params);
+		void		privmsg(User &user, std::string prefix, std::vector<std::string> params);
+		void		topic(User &user, std::string prefix, std::vector<std::string> params);
+		void		invite(User &user, std::string prefix, std::vector<std::string> params);
+		void		kick(User &user, std::string prefix, std::vector<std::string> params);
 
-		void		privmsg(User &user, std::string prefix, std::vector<std::string> params); //
+
 		//void		registration(User user);
 		void		handleData(User &user, const std::string& data);
 		void		parseLine(User &user, std::string line);

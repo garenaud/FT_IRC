@@ -50,6 +50,8 @@ bool	User::operator==(const User& other) const
 
 int		User::getFd() const
 {
+	if (!this->fd)
+		return 0;
 	return this->fd;
 }
 
