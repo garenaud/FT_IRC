@@ -25,6 +25,8 @@
 #include <map>
 #include <climits>
 
+#define MAX_USER 1000
+
 class User;
 class Command;
 class Msg;

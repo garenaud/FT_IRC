@@ -3,8 +3,15 @@
 #include "Msg.hpp"
 #include "Command.hpp"
 
-Server::Server() {}
-Server::~Server() {}
+Server::Server()
+{
+	this->users.reserve(MAX_USER);
+}
+
+Server::~Server()
+{
+
+}
 
 
 void    Server::setPort(int port)
