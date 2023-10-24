@@ -99,7 +99,10 @@ std::string			Channel::getPassword() const
 
 std::vector<User *>	Channel::getUsers() const
 {
-	return this->_users;
+	if (!this->_users.empty())
+		return this->_users;
+	else
+		return std::vector<User*>();
 }
 
 std::vector<User *>	Channel::getChanops() const
@@ -254,7 +257,7 @@ void	Channel::addUser(User &user)
 {
 	if (this->isUser(user))
 	{
-		send(user.getFd(), ERR_USERONCHANNEL(user.getNick(), this->_name).c_str(), ERR_USERONCHANNEL(user.getNick(), this->_name).length(), 0);
+		send(user.getFd(), ERR_USERONCHANNEL(user.getNick(), user.getNick(), this->_name).c_str(), ERR_USERONCHANNEL(user.getNick(), user.getNick(), this->_name).length(), 0);
 		return ;
 	}
 	else
@@ -264,7 +267,7 @@ void	Channel::addUser(User &user)
 	}
 }
 
-void	Channel::inviteUser(User &user, User chanop)
+void	Channel::inviteUser(User &user, User &chanop)
 {
 	if (this->isChanops(chanop))
 	{
@@ -273,7 +276,7 @@ void	Channel::inviteUser(User &user, User chanop)
 	}
 }
 
-void	Channel::addChanops(User &user, User chanop)
+void	Channel::addChanops(User &user, User &chanop)
 {
 	if (this->isChanops(chanop))
 	{
@@ -295,7 +298,7 @@ void	Channel::rmChanops(User &user)
 }
 
 
-void	Channel::kickUser(User &user, User chanop)
+void	Channel::kickUser(User &user, User &chanop)
 {
 	if (this->isChanops(chanop))
 	{
@@ -314,7 +317,7 @@ void	Channel::kickUser(User &user, User chanop)
 }
 
 
-void	Channel::kickChanops(User &user, User chanop)
+void	Channel::kickChanops(User &user, User &chanop)
 {
 	if (this->isChanops(chanop))
 	{

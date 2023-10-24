@@ -16,7 +16,7 @@ class User
 		void		operator=(User const &src);
 		bool		operator==(const User& other) const;
 		void		setFd(int fd);
-		int			getFd() const;
+		int			getFd();
 		void		setNick(std::string nick);
 		std::string	getNick();
 		void		setUser(std::string user);

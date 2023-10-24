@@ -3,7 +3,10 @@
 #include "Msg.hpp"
 #include "Command.hpp"
 
-Server::Server() {}
+Server::Server() 
+{
+    this->stop = false;
+}
 Server::~Server() {}
 
 
@@ -237,6 +240,7 @@ void Server::removeUser(int fd)
     {
         users.erase(users.begin() + index);
     }
+    std::cout << redbg << "User removed" << reset << std::endl;
 }
 
 void Server::sendPing(int client_fd)

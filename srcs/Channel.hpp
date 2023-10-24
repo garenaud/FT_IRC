@@ -68,11 +68,11 @@ class Channel
 		std::string	getList();
 
 		void	addUser(User &user);
-		void	inviteUser(User &user, User chanop);
-		void	addChanops(User &user, User chanop);
+		void	inviteUser(User &user, User &chanop);
+		void	addChanops(User &user, User &chanop);
 		void	rmChanops(User &user);
-		void	kickUser(User &user, User chanop);
-		void	kickChanops(User &user, User chanop);
+		void	kickUser(User &user, User &chanop);
+		void	kickChanops(User &user, User &chanop);
 
 		void	printUsers();
 		void	printChanops();

@@ -48,12 +48,8 @@ bool	User::operator==(const User& other) const
 	this->fd = fd;
 } */
 
-int		User::getFd()
+int		User::getFd() const
 {
-	printf("\n\nadresse this %p\n\n", this);
-	//std::cout << this->getNick() << std::endl;
-	if (!this->fd)
-		return 0;
 	return this->fd;
 }
 
