@@ -194,9 +194,9 @@ void    Command::nick(User &user, std::string prefix, std::vector<std::string> p
     {
         user.setNick(nick);
         user.checkRegistration();
-        std::string createMessage = ":" + oldNick + "!" + user.getUser() + "@" + user.getHostname() + " NICK " + user.getNick() + "\r\n";
+/*         std::string createMessage = ":" + oldNick + "!" + user.getUser() + "@" + user.getHostname() + " NICK " + user.getNick() + "\r\n";
         std::cout << "createMessage = " << createMessage << "register = " << user.getIsRegistered() << std::endl;
-        send(user.getFd(), RPL_NICK(oldNick, user.getUser(), user.getNick()).c_str(), RPL_NICK(oldNick, user.getUser(), user.getNick()).length(), 0);
+        send(user.getFd(), RPL_NICK(oldNick, user.getUser(), user.getNick()).c_str(), RPL_NICK(oldNick, user.getUser(), user.getNick()).length(), 0); */
     }
     //user.setNick(nick);
     if (user.getIsRegistered() == 1)
@@ -623,13 +623,26 @@ void	Command::mode(User &user, std::string prefix, std::vector<std::string> para
 
 void Command::sendToAllJoinedChannel(User &user, std::string msg)
 {
-	for (unsigned long i = 0; i < user.getJoinedChannels().size(); i++)
-	{
-		if (user.getJoinedChannels()[i])
-		{
-			sendChannelUsers(user.getJoinedChannels()[i]->getUsers(), msg, user);
-		}
-	}
+    std::set<User*> usersAlreadyNotified;
+    for (unsigned long i = 0; i < user.getJoinedChannels().size(); i++)
+    {
+        if (user.getJoinedChannels()[i])
+        {
+            const std::vector<User*>& channelUsers = user.getJoinedChannels()[i]->getUsers();
+            for (size_t j = 0; j < channelUsers.size(); j++)
+            {
+                User* channelUser = channelUsers[j];
+                if (usersAlreadyNotified.find(channelUser) == usersAlreadyNotified.end())
+                {
+                    if (channelUser->getNick() != user.getNick())
+                    {
+                        send(channelUser->getFd(), msg.c_str(), msg.length(), 0);
+                    }
+                    usersAlreadyNotified.insert(channelUser);
+                }
+            }
+        }
+    }
 }
 
 void Command::sendChannelUsers(std::vector<User *> channelUsers, std::string msg, User &user) const

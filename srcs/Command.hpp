@@ -2,6 +2,7 @@
 # define ICOMMAND_HPP
 #include <iostream>
 #include <vector>
+#include <set>
 #include "User.hpp"
 #include "Server.hpp"
 
@@ -42,7 +43,6 @@ class Command
 		void		parseLine(User &user, std::string line);
 		void		sendToAllJoinedChannel(User &user, std::string msg);
 		void		sendChannelUsers(std::vector<User *> channelUsers, std::string msg, User &user) const; 
-
 		typedef void (Command::*CmdFunc)(User&, std::string, std::vector<std::string>);
 		
 		static const CmdFunc cmdArr[];

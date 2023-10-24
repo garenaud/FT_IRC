@@ -24,6 +24,7 @@
 #include <vector>
 #include <map>
 #include <climits>
+#include <set>
 
 #define MAX_USER 1000
 
@@ -40,7 +41,7 @@ class Server
 		~Server();
 		void		setPort(int port);
 		int			getPort();
-		void		setStop(bool status);
+		static void		setStop(bool status);
 		void		setPasswd(std::string passwd);
 		std::string	getPasswd();
 		void		setTV(int sec, int musec);
@@ -70,11 +71,14 @@ class Server
 		void	createChannel(std::string channelName, User *user);
 		void	rmChannel(std::string channelName);
 
+		static void		signalHandler(int signum);
+		bool	getStop();
+		void	sendToAllUser(std::string msg);
 
 	private:
 		int port;
 		std::string passwd;
-		bool stop;
+		static bool stop;
 
 		// variable main...
 		int				listener_socket;

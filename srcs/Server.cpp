@@ -3,6 +3,8 @@
 #include "Msg.hpp"
 #include "Command.hpp"
 
+bool Server::stop = false;
+
 Server::Server() 
 {
     this->stop = false;
@@ -16,7 +18,7 @@ void    Server::setPort(int port)
 }
 void    Server::setStop(bool status)
 {
-    this->stop = status;
+    Server::stop = status;
 }
 
 void    Server::setPasswd(std::string passwd)
@@ -33,6 +35,19 @@ void    Server::setTV(int sec, int musec)
 int     Server::getPort()
 {
     return this->port;
+}
+
+bool    Server::getStop()
+{
+    return this->stop;
+}
+
+void    Server::signalHandler(int signum) 
+{
+    if (signum == SIGINT) {
+        std::cout << "-> Server shutdown requested. Exiting..." << std::endl << std::endl;
+        Server::stop = true;
+    }
 }
 
 void    *Server::get_in_addr(struct sockaddr *sa)
@@ -197,9 +212,13 @@ void    Server::run()
     {
         int poll_count = poll(&pfds[0], this->pfds.size(), -1);
         if (poll_count == -1) {
-            perror("poll");
-            exit(1);
+        if (errno == EINTR) {
+            // L'appel à poll a été interrompu par un signal, ignorez et continuez
+            return;
         }
+        perror("poll");
+        exit(1);
+    }
          for(size_t i = 0; i < this->pfds.size(); i++)
          {
               if (this->pfds[i].revents & POLLIN)
@@ -341,4 +360,12 @@ void	Server::rmChannel(std::string channelName)
 std::vector<User>	Server::getUser()
 {
     return this->users;
+}
+
+void    Server::sendToAllUser(std::string msg)
+{
+    for (unsigned int i = 0; i < this->users.size(); i++)
+    {
+        send(this->users[i].getFd(), msg.c_str(), msg.length(), 0);
+    }
 }
