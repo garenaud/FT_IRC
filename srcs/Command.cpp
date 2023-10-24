@@ -734,7 +734,7 @@ void	Command::invite(User &user, std::string prefix, std::vector<std::string> pa
 		return ;
 	}
 	// check si p[0] = user
-	if (!server.getUserByNick(params[0])->getIsRegistered())
+	if (!server.getUserByNick(params[0]))
 	{
 		send(user.getFd(), ERR_NOSUCHNICK(user.getNick(), params[0]).c_str(), ERR_NOSUCHNICK(user.getNick(), params[0]).length(), 0);
 		return;
