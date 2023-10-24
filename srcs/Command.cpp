@@ -202,7 +202,7 @@ void    Command::nick(User &user, std::string prefix, std::vector<std::string> p
     if (user.getIsRegistered() == 1)
     {
         send(user.getFd(), RPL_WELCOME(user.getUser(), user.getNick()).c_str(), RPL_WELCOME(user.getUser(), user.getNick()).length(), 0);
-        user.setIsRegistered(2);
+		user.setIsRegistered(2);
     }
     else if (user.getIsRegistered() == 2) //(!prefix.empty())
     {
