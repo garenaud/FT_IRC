@@ -6,9 +6,9 @@
 Server::Server() 
 {
     this->stop = false;
+    this->users.reserve(MAX_USER);
 }
 Server::~Server() {}
-
 
 void    Server::setPort(int port)
 {
