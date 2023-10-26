@@ -152,12 +152,15 @@ void	User::addInvitedChannel(std::string channelName)
 	this->invitedChannels.push_back(channelName);
 }
 
-void	User::rmInvitedChannel(std::string channelName)
+void User::rmInvitedChannel(std::string channelName)
 {
-	for (std::vector<std::string>::iterator it = invitedChannels.begin(); it != invitedChannels.end(); ++it)
+	std::vector<std::string>::iterator it = invitedChannels.begin();
+	while (it != invitedChannels.end())
 	{
 		if (*it == channelName)
 			it = invitedChannels.erase(it);
+		else
+			++it;
 	}
 }
 
