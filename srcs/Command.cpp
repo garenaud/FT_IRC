@@ -157,7 +157,7 @@ void	Command::ping(User &user, std::string prefix, std::vector<std::string> para
 	{
 		if (params.size() > 0) 
 			send(user.getFd(), RPL_PONG(user.getNick(), user.getUser(), params[0]).c_str(), RPL_PONG(user.getNick(), user.getUser(), params[0]).length(), 0);
-		else 
+		else
 			send(user.getFd(), RPL_PONG(user.getNick(), user.getUser(), ":").c_str(), RPL_PONG(user.getNick(), user.getUser(), ":").length(), 0);
 	}
 		return ;

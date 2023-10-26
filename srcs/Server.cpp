@@ -392,11 +392,11 @@ void    Server::checkForInactiveUser()
     std::cout << green << "Checking for inactive users..." << reset << std::endl;
     for (unsigned int i = 0; i < this->users.size(); i++)
     {
-        sendPing(this->users[i].getFd());
-        if (time(NULL) - this->users[i].getLastPing() > 20)
+        //sendPing(this->users[i].getFd());
+        if (time(NULL) - this->users[i].getLastPing() > 240)
         {
             std::cout << redbg << "User " << this->users[i].getNick() << " is inactive for 4 minutes. Disconnecting..." << reset << std::endl;
-            this->removeUser(this->users[i].getFd());
+            //this->removeUser(this->users[i].getFd());
             //this->del_from_pfds(this->getPfdsIndex(this->users[i].getFd()));
         }
     }
