@@ -31,6 +31,8 @@ class User
 		std::string	getMode();
  		void		setIsRegistered(int isRegistered);
 		int			getIsRegistered();
+		time_t		getLastPing();
+		void		setLastPing(time_t lastPing);
 		void 		checkRegistration();
 
 		void		addInvitedChannel(std::string channelName);
@@ -46,6 +48,7 @@ class User
 		bool 		getIsAlive() const;
 
 	private:
+		time_t		lastPing;
 		const int	fd;
 		std::string	nick;
 		std::string	user;

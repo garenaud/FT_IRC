@@ -3,10 +3,12 @@
 
 User::User(int fd, std::string nick, std::string user) : fd(fd), nick(nick), user(user), passwd("none"), realname("none"), hostname("none"), mode("0"), isRegistered(0), isAlive(true)
 {
+	lastPing = time(NULL);
 }
 
 User::User(int fd) : fd(fd), nick("none"), user("none"), passwd("none"), realname("none"), hostname("none"), mode("0"), isRegistered(0), isAlive(true)
 {
+	lastPing = time(NULL);
 }
 
 User::~User() 
@@ -235,4 +237,14 @@ bool	User::isOperator(std::string channelName) const
 			return true;
 	}
 	return false;
+}
+
+void	User::setLastPing(time_t lastPing)
+{
+	this->lastPing = lastPing;
+}
+
+time_t	User::getLastPing()
+{
+	return this->lastPing;
 }

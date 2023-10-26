@@ -68,6 +68,11 @@ void 	Command::execute(User &user)
 {
 	//std::cout << this->command << std::endl;
 	//std::cout << greenbg << "prefix = " << this->prefix << reset << std::endl;
+	if (&user == nullptr)
+	{
+		std::cout << magenta << "user is dead!!!!!" << reset << std::endl;
+		return ;
+	}
     static const std::string arr[] = {"CAP", "JOIN", "PASS", "PING", "PONG", "NICK", "USER", "WHO", "MODE", "PRIVMSG", "TOPIC", "INVITE", "KICK"};
     for (size_t i = 0; i < 13; i++)
     {
@@ -83,6 +88,11 @@ void 	Command::execute(User &user)
 void	Command::privmsg(User &user, std::string prefix, std::vector<std::string> params)
 {
 	(void)prefix;
+	if (&user == nullptr)
+	{
+		std::cout << magenta << "user is dead!!!!! in privmsg" << reset << std::endl;
+		return ;
+	}
 	Channel *chan = server.getChannel(params[0]);
 	std::string	source = user.getNick();
 	std::string	message;
@@ -142,13 +152,15 @@ void	Command::ping(User &user, std::string prefix, std::vector<std::string> para
 {
 	(void)prefix;
 	std::string pong;
-	if (user.getIsAlive() == true)
+	server.handlePong(&user);
+	if (&user != nullptr)
 	{
 		if (params.size() > 0) 
 			send(user.getFd(), RPL_PONG(user.getNick(), user.getUser(), params[0]).c_str(), RPL_PONG(user.getNick(), user.getUser(), params[0]).length(), 0);
 		else 
 			send(user.getFd(), RPL_PONG(user.getNick(), user.getUser(), ":").c_str(), RPL_PONG(user.getNick(), user.getUser(), ":").length(), 0);
 	}
+		return ;
 }
 
 void	Command::pong(User &user, std::string prefix, std::vector<std::string> params)
@@ -156,13 +168,14 @@ void	Command::pong(User &user, std::string prefix, std::vector<std::string> para
 	(void)prefix;
 	(void)params;
 	(void)user;
+	server.handlePong(&user);
 	if (params.size() > 0)
 	{
-		std::cout << "PONG " << params[0] << std::endl;
+		//std::cout << "PONG " << params[0] << std::endl;
 		std::string pong = "PONG " + params[0] + "\r\n";
 		send(user.getFd(), pong.c_str(), pong.length(), 0);
 	}
-	std::string pong = "PONG :localhost 6667\r\n";
+	std::string pong = "PONG\r\n";
 	send(user.getFd(), pong.c_str(), pong.length(), 0);
 	//std::cout << "Pong envoye \n";
 }
@@ -237,8 +250,13 @@ void	Command::user(User &user, std::string prefix, std::vector<std::string> para
 void	Command::pass(User &user, std::string prefix, std::vector<std::string> params)
 {
 	(void)prefix;
+	if (&user == nullptr)
+	{
+		std::cout << magenta << "user is dead!!!!!" << reset << std::endl;
+		return ;
+	}
 	//std::cout << magenta << "isRegistered = " << user.getIsRegistered() << reset << std::endl;
-	if (params.size() != 1)
+	if (&user != nullptr && params.size() != 1)
 	{
 		send(user.getFd(), ERR_NEEDMOREPARAMS(user.getNick(), "PASS").c_str(), ERR_NEEDMOREPARAMS(user.getNick(), "PASS").length(), 0);
 		server.del_from_pfds(server.getPfdsIndex(user.getFd()));
@@ -313,6 +331,8 @@ void	Command::join(User &user, std::string prefix, std::vector<std::string> para
 		return ;
 	}
 	std::string channel = params[0];
+	if (channel[0] == ' ')
+	 return ;
 	if (channel[0] != '#')
 	{
 		send(user.getFd(), ERR_NOSUCHCHANNEL(user.getNick(), channel).c_str(), ERR_NOSUCHCHANNEL(user.getNick(), channel).length(), 0);
@@ -434,7 +454,7 @@ void Command::parseLine(User &user, std::string line)
 		}
 	}
 	Command cmd(server, prefix, command, params);
-	//std::cout << cyan << "command = " << cmd.getCommand() << " params = " << cmd.getParams() << reset << std::endl;
+	///std::cout << cyan << "command = " << cmd.getCommand() << " params = " << cmd.getParams() << reset << std::endl;
 	cmd.execute(user);
 }
 

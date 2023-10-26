@@ -74,6 +74,8 @@ class Server
 		static void		signalHandler(int signum);
 		bool	getStop();
 		void	sendToAllUser(std::string msg);
+		void 	handlePong(User *user);
+		void 	checkForInactiveUser();
 
 	private:
 		int port;

@@ -44,9 +44,15 @@ bool    Server::getStop()
 
 void    Server::signalHandler(int signum) 
 {
-    if (signum == SIGINT) {
+    if (signum == SIGINT) 
+    {
         std::cout << "-> Server shutdown requested. Exiting..." << std::endl << std::endl;
         Server::stop = true;
+    }
+    if (signum == SIGTERM)
+    {
+        std::cout << magenta << "-> a User is disconnected" << reset << std::endl << std::endl;
+        //Server::stop = true;
     }
 }
 
@@ -117,10 +123,11 @@ void    Server::add_to_pfds(int newfd)
 
 void    Server::del_from_pfds(int index)
 {// a voir, manque test erreur
-    if (index < (int)this->pfds.size())
+    if (index != -1 && static_cast<std::vector<User>::size_type>(index) < pfds.size())
     {
         removeUser(this->pfds[index].fd);
-        this->pfds.erase(this->pfds.begin() + index);
+        pfds.erase(pfds.begin() + index);
+        //this->pfds.erase(this->pfds.begin() + index);
     }
 }
 
@@ -160,12 +167,12 @@ void    Server::handleNewConnection()
 
 void Server::handleClient(Msg &aMess, int index)
 {
-
     memset(this->buffer, 0, sizeof(this->buffer));
     int nbytes = recv(pfds[index].fd, this->buffer, sizeof(this->buffer), 0);
     int sender_fd = pfds[index].fd;
     aMess.initialize(sender_fd, users[getUserIndex(sender_fd)], this->buffer, nbytes);
     aMess.split2("\r\n");
+    checkForInactiveUser();
     if (nbytes <= 0)
     {
         if (nbytes == 0)
@@ -211,7 +218,8 @@ void    Server::run()
     for (;;)
     {
         int poll_count = poll(&pfds[0], this->pfds.size(), -1);
-        if (poll_count == -1) {
+        if (poll_count == -1) 
+        {
         if (errno == EINTR) {
             // L'appel à poll a été interrompu par un signal, ignorez et continuez
             return;
@@ -255,16 +263,17 @@ void Server::addUser(int fd)
 void Server::removeUser(int fd)
 {
     int index = getUserIndex(fd);
-    if (index != -1)
+    if (index != -1 && static_cast<std::vector<User>::size_type>(index) < users.size())
     {
         users.erase(users.begin() + index);
     }
     std::cout << redbg << "User removed" << reset << std::endl;
 }
 
+
 void Server::sendPing(int client_fd)
 {
-    std::string ping_msg = "PING :localhost 6667\r\n";
+    std::string ping_msg = "PING\r\n";
     send(client_fd, ping_msg.c_str(), ping_msg.length(), 0);
     //std::cout << "Ping envoye \n";
 }
@@ -367,5 +376,28 @@ void    Server::sendToAllUser(std::string msg)
     for (unsigned int i = 0; i < this->users.size(); i++)
     {
         send(this->users[i].getFd(), msg.c_str(), msg.length(), 0);
+    }
+}
+
+void	Server::handlePong(User *user)
+{
+    if (user == nullptr)
+        return ;
+    user->setLastPing(time(NULL));
+    std::cout << greenbg << "Pong received from " << user->getNick() << " time = " << user->getLastPing() << reset << std::endl;
+}
+
+void    Server::checkForInactiveUser()
+{
+    std::cout << green << "Checking for inactive users..." << reset << std::endl;
+    for (unsigned int i = 0; i < this->users.size(); i++)
+    {
+        sendPing(this->users[i].getFd());
+        if (time(NULL) - this->users[i].getLastPing() > 20)
+        {
+            std::cout << redbg << "User " << this->users[i].getNick() << " is inactive for 4 minutes. Disconnecting..." << reset << std::endl;
+            this->removeUser(this->users[i].getFd());
+            //this->del_from_pfds(this->getPfdsIndex(this->users[i].getFd()));
+        }
     }
 }
