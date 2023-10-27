@@ -349,7 +349,7 @@ void	Command::join(User &user, std::string prefix, std::vector<std::string> para
 		}
 		else
 		{
-			if (this->_channel->getModeK() && (params.size() < 2 || params[1] != this->_channel->getPassword()))
+			if (this->_channel->getModeK() && (params.size() < 2 || strcmp(params[1].c_str(), this->_channel->getPassword().c_str()) != 0))
 			{
 				send(user.getFd(), ERR_BADCHANNELKEY(user.getNick(), channel).c_str(), ERR_BADCHANNELKEY(user.getNick(), channel).length(), 0);
 				return;
