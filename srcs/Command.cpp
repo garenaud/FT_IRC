@@ -363,7 +363,7 @@ void	Command::join(User &user, std::string prefix, std::vector<std::string> para
 				}
 				else
 				{
-					if (this->_channel->isKicked(user)) // vrm utile si on implemente pas KICK ?
+					if (server.getChannel(params[0])->isKicked(user))
 					{
 						std::string err = "474 " + user.getNick() + " " + this->_channel->getName() + " :Cannot join channel after being kicked\r\n";
 						send(user.getFd(), err.c_str(), err.length(), 0);
@@ -503,7 +503,7 @@ void	Command::mode(User &user, std::string prefix, std::vector<std::string> para
 				this->_channel->addChanops(*paramUser, user);
 				paramUser->addOperatorChannel(this->_channel->getName());
 				std::string msg = params[2] + " is now operator in " + params[0] + "\r\n";
-				sendChannelUsers(channelUsers, msg, user);
+				sendChannelUsersAndMe(channelUsers, msg, user);
 				return;
 			}
 			if (params[1][0] == '-')
@@ -511,7 +511,7 @@ void	Command::mode(User &user, std::string prefix, std::vector<std::string> para
 				this->_channel->rmChanops(*paramUser);
 				paramUser->rmOperatorChannel(params[0]);
 				std::string msg = params[2] + " is not operator anymore in " + params[0] + "\r\n";
-				sendChannelUsers(channelUsers, msg, user);
+				sendChannelUsersAndMe(channelUsers, msg, user);
 				return;
 			}
 
@@ -531,7 +531,7 @@ void	Command::mode(User &user, std::string prefix, std::vector<std::string> para
 			this->_channel->setRmMode("+k");
 			this->_channel->setPassword(params[2]);
 			std::string msg = ":localhost 324 " + user.getNick() + " " + this->_channel->getName() + " +k " + params[2] + "\r\n";
-			sendChannelUsers(channelUsers, msg, user);
+			sendChannelUsersAndMe(channelUsers, msg, user);
 			return;
 		}
 		if (params[1][1] == 'l')
@@ -547,7 +547,7 @@ void	Command::mode(User &user, std::string prefix, std::vector<std::string> para
 				this->_channel->setRmMode("+l");
 				this->_channel->setMax(num);
 				std::string msg = user.getNick() + " sets a new limit of users on " + this->_channel->getName() + " : " + params[2] + "\r\n";
-				sendChannelUsers(channelUsers, msg, user);
+				sendChannelUsersAndMe(channelUsers, msg, user);
 				return;
 			}
 		}
@@ -559,7 +559,7 @@ void	Command::mode(User &user, std::string prefix, std::vector<std::string> para
 			this->_channel->setPassword("");
 			this->_channel->setRmMode("-k");
 			std::string msg = user.getNick() + " removes key of " + this->_channel->getName() + "\r\n";
-			sendChannelUsers(channelUsers, msg, user);
+			sendChannelUsersAndMe(channelUsers, msg, user);
 			return;
 		}
 		if (params[1][1] == 'l')
@@ -567,7 +567,7 @@ void	Command::mode(User &user, std::string prefix, std::vector<std::string> para
 			this->_channel->setMax(INT_MAX);
 			this->_channel->setRmMode("-l");
 			std::string msg = user.getNick() + " removes limit of user on " + this->_channel->getName() + "\r\n";
-			sendChannelUsers(channelUsers, msg, user);
+			sendChannelUsersAndMe(channelUsers, msg, user);
 			return;
 		}
 	}
@@ -583,7 +583,7 @@ void	Command::mode(User &user, std::string prefix, std::vector<std::string> para
 				(*it)->rmInvitedChannel(this->_channel->getName());
 			}
 			std::string msg = user.getNick() + " removes the invited-only mode on " + this->_channel->getName() + "\r\n";
-			sendChannelUsers(channelUsers, msg, user);
+			sendChannelUsersAndMe(channelUsers, msg, user);
 			return;
 		}
 		if (params[1][0] == '+')
@@ -594,7 +594,7 @@ void	Command::mode(User &user, std::string prefix, std::vector<std::string> para
 				(*it)->addInvitedChannel(this->_channel->getName());
 			}
 			std::string msg = user.getNick() + " sets the invited-only mode on " + this->_channel->getName() + "\r\n";
-			sendChannelUsers(channelUsers, msg, user);
+			sendChannelUsersAndMe(channelUsers, msg, user);
 			return;
 		}
 	}
@@ -606,14 +606,14 @@ void	Command::mode(User &user, std::string prefix, std::vector<std::string> para
 		{
 			this->_channel->setRmMode("-t");
 			std::string msg = user.getNick() + " removes the protected topic mode on " + this->_channel->getName() + "\r\n";
-			sendChannelUsers(channelUsers, msg, user);
+			sendChannelUsersAndMe(channelUsers, msg, user);
 			return;
 		}
 		if (params[1][0] == '+')
 		{
 			this->_channel->setRmMode("+t");
 			std::string msg = user.getNick() + " sets the protected topic mode on " + this->_channel->getName() + "\r\n";
-			sendChannelUsers(channelUsers, msg, user);
+			sendChannelUsersAndMe(channelUsers, msg, user);
 			return;
 		}
 	}
@@ -634,10 +634,7 @@ void Command::sendToAllJoinedChannel(User &user, std::string msg)
                 User* channelUser = channelUsers[j];
                 if (usersAlreadyNotified.find(channelUser) == usersAlreadyNotified.end())
                 {
-                    if (channelUser->getNick() != user.getNick())
-                    {
-                        send(channelUser->getFd(), msg.c_str(), msg.length(), 0);
-                    }
+                    send(channelUser->getFd(), msg.c_str(), msg.length(), 0);
                     usersAlreadyNotified.insert(channelUser);
                 }
             }
@@ -653,6 +650,15 @@ void Command::sendChannelUsers(std::vector<User *> channelUsers, std::string msg
 		{
 			send(channelUsers[i]->getFd(), msg.c_str(), msg.length(), 0);
 		}
+	}
+}
+
+void Command::sendChannelUsersAndMe(std::vector<User *> channelUsers, std::string msg, User &user) const
+{
+	(void) user;
+	for (unsigned long i = 0; i < channelUsers.size(); i++)
+	{
+		send(channelUsers[i]->getFd(), msg.c_str(), msg.length(), 0);
 	}
 }
 
@@ -721,8 +727,7 @@ void	Command::topic(User &user, std::string prefix, std::vector<std::string> par
 			{
 				server.getChannel(channel)->setRmMode("-t");
 				server.getChannel(channel)->setTopic("");
-				send(user.getFd(), RPL_NOTOPIC(user.getNick(), channel).c_str(), RPL_NOTOPIC(user.getNick(), channel).length(), 0);
-				sendChannelUsers(server.getChannel(channel)->getUsers(), RPL_NOTOPIC(user.getNick(), channel), user);
+				sendChannelUsersAndMe(server.getChannel(channel)->getUsers(), RPL_NOTOPIC(user.getNick(), channel), user);
 				return;
 			}
 			else
@@ -732,8 +737,7 @@ void	Command::topic(User &user, std::string prefix, std::vector<std::string> par
 				for (size_t i = 1; i < params.size(); i++)
 					topic += (params[i] + " ");
 				server.getChannel(channel)->setTopic(topic);
-				send(user.getFd(), RPL_TOPIC(user.getNick(), channel, server.getChannel(channel)->getTopic()).c_str(), RPL_TOPIC(user.getNick(), channel, server.getChannel(channel)->getTopic()).length(), 0);
-				sendChannelUsers(server.getChannel(channel)->getUsers(), RPL_TOPIC(user.getNick(), channel, server.getChannel(channel)->getTopic()), user);
+				sendChannelUsersAndMe(server.getChannel(channel)->getUsers(), RPL_TOPIC(user.getNick(), channel, server.getChannel(channel)->getTopic()), user);
 				return;
 			}
 		}
@@ -798,8 +802,7 @@ void	Command::invite(User &user, std::string prefix, std::vector<std::string> pa
 						//check si userparam est deja invite
 						if (!server.getUserByNick(params[0])->isInvited(params[1]))
 							server.getUserByNick(params[0])->addInvitedChannel(params[1]);
-						send(user.getFd(), RPL_INVITE(user.getNick(), user.getUser(), server.getUserByNick(params[0])->getNick(), params[1]).c_str(), RPL_INVITE(user.getNick(), user.getUser(), server.getUserByNick(params[0])->getNick(), params[1]).length(), 0);
-						sendChannelUsers(server.getChannel(params[1])->getUsers(), RPL_INVITE(user.getNick(), user.getUser(), server.getUserByNick(params[0])->getNick(), params[1]), user);
+						sendChannelUsersAndMe(server.getChannel(params[1])->getUsers(), RPL_INVITE(user.getNick(), user.getUser(), server.getUserByNick(params[0])->getNick(), params[1]), user);
 						return;
 					}
 				}
@@ -869,8 +872,7 @@ void	Command::kick(User &user, std::string prefix, std::vector<std::string> para
 						for (size_t i = 2; i < params.size(); i++)
 							reason += (params[i] + " ");
 					}
-					send(user.getFd(), RPL_KICK(user.getNick(), user.getUser(), params[0], server.getUserByNick(params[1])->getNick(), reason).c_str(), RPL_KICK(user.getNick(), user.getUser(), params[0], server.getUserByNick(params[1])->getNick(), reason).length(), 0);
-					sendChannelUsers(server.getChannel(params[0])->getUsers(), RPL_INVITE(user.getNick(), user.getUser(), server.getUserByNick(params[1])->getNick(), params[0]), user);
+					sendChannelUsersAndMe(server.getChannel(params[0])->getUsers(), RPL_KICK(user.getNick(), user.getUser(), params[0], server.getUserByNick(params[1])->getNick(), reason), user);
 					return;
 				}
 			}
