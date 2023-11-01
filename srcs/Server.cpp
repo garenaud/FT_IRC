@@ -172,7 +172,7 @@ void Server::handleClient(Msg &aMess, int index)
     int sender_fd = pfds[index].fd;
     aMess.initialize(sender_fd, users[getUserIndex(sender_fd)], this->buffer, nbytes);
     aMess.split2("\r\n");
-    checkForInactiveUser();
+    //checkForInactiveUser();
     if (nbytes <= 0)
     {
         if (nbytes == 0)
@@ -263,11 +263,27 @@ void Server::addUser(int fd)
 void Server::removeUser(int fd)
 {
     int index = getUserIndex(fd);
+    User *user = &(users[index]);
+    std::vector<Channel *> joinedChannels = user->getJoinedChannels();
+    if (joinedChannels.size() > 0)
+    {
+        for (size_t i = 0; i < joinedChannels.size(); ++i)
+        {
+            std::cout << cyan << user->getNick() << " removed from channel " << joinedChannels[i]->getName() << reset << std::endl;
+            Channel *channel = getChannel(joinedChannels[i]->getName());
+            if (channel != nullptr)
+            {
+                channel->rmUser(*user); 
+            }
+            std::cout << redbg << "User removed from channel " << reset << std::endl;
+        }
+    }
     if (index != -1 && static_cast<std::vector<User>::size_type>(index) < users.size())
     {
         users.erase(users.begin() + index);
     }
     std::cout << redbg << "User removed" << reset << std::endl;
+    this->displayUsers();
 }
 
 
@@ -310,6 +326,21 @@ User    *Server::getUserByNick(const std::string& nick)
             return &(this->users[i]);
     }
     return nullptr;
+}
+
+bool    Server::isUserValid(User *user)
+{
+    if (user == nullptr)
+        return false;
+/*     if (user->getNick() == "")
+        return false;
+    if (user->getUser() == "")
+        return false;
+    if (user->getRealname() == "")
+        return false;
+    if (user->getHostname() == "")
+        return false; */
+    return true;
 }
 
 int     Server::getPfdsIndex(int fd)
@@ -381,7 +412,7 @@ void    Server::sendToAllUser(std::string msg)
 
 void	Server::handlePong(User *user)
 {
-    if (user == nullptr)
+    if (user == NULL)
         return ;
     user->setLastPing(time(NULL));
     std::cout << greenbg << "Pong received from " << user->getNick() << " time = " << user->getLastPing() << reset << std::endl;

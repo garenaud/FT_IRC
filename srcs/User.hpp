@@ -46,6 +46,7 @@ class User
 		void		rmOperatorChannel(std::string channelName);
 		bool		isOperator(std::string channelName) const;
 		bool 		getIsAlive() const;
+		std::vector<Channel *>	getJoinedChannels() const;
 
 	private:
 		time_t		lastPing;

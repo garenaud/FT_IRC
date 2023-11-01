@@ -85,81 +85,87 @@ void 	Command::execute(User &user)
 	//std::cout << this->command << " = Commande inconnue" << std::endl;
 }
 // ICI
-void	Command::privmsg(User &user, std::string prefix, std::vector<std::string> params)
+void Command::privmsg(User& user, std::string prefix, std::vector<std::string> params)
 {
-	(void)prefix;
-	if (&user == nullptr)
-	{
-		std::cout << magenta << "user is dead!!!!! in privmsg" << reset << std::endl;
-		return ;
-	}
-	Channel *chan = server.getChannel(params[0]);
-	std::string	source = user.getNick();
-	std::string	message;
-	if (params.size() >= 2)
-	{
-		message = params[params.size() - 1];
-/*		if (message.length() == 0)
-		{// a verifier
-		std::string err = ":server 401 "  + user.getNick() +": No text to send\r\n";//
-		send(user.getFd(), err.c_str(), err.length(), 0);
-		}*/
-		std::cout << cyan << "\t\t" <<message <<reset << std::endl;
-	}
-	else {};
-	if (!server.isNickAvailable(params[0]))
-	{
+    (void)prefix;
+    if (server.isUserValid(&user) == false)
+    {
+        std::cout << "user is dead!!!!! in privmsg" << std::endl;
+        return ;
+    }
+	std::cout << cyanbg << "privmsg user = " << user.getNick() << reset << std::endl;
+    if (params.size() < 2)
+    {
+        // handle error
+        return;
+    }
 
-		User	*usr= server.getUserByNick(params[0]);
+    std::string receiver = params[0];
+    std::string message = params[1];
 
-		if (usr)
+    Channel* channel = server.getChannel(receiver);
+    if (channel == NULL)
+    {
+        User* recipient = server.getUserByNick(receiver);
+        if (server.isUserValid(recipient) == true)
+        {
+            send(recipient->getFd(), RPL_PRIVMSG(user.getNick(), user.getUser(), recipient->getNick(), message).c_str(), RPL_PRIVMSG(user.getNick(), user.getUser(), recipient->getNick(), message).length(), 0);
+        }
+        else
+        {
+            send(user.getFd(), ERR_NOSUCHNICK(user.getNick(), receiver).c_str(), ERR_NOSUCHNICK(user.getNick(), receiver).length(), 0);
+        }
+        return;
+    }
+
+    if (!channel->isUser(user) && server.getUserByNick(user.getNick()) != nullptr)
+    {
+        send(user.getFd(), ERR_NOTONCHANNEL(user.getNick(), user.getNick(), receiver).c_str(), ERR_NOTONCHANNEL(user.getNick(), user.getNick(), receiver).length(), 0);
+        return;
+    }
+
+    //std::vector<User*> users = channel->getUsers();
+    std::vector<User*> users;
+	users.reserve(MAX_USER);
+	users = channel->getUsers();
+    for (std::vector<User*>::iterator it = users.begin(); it != users.end(); ++it)
+    {
+        if (server.isUserValid(*it) == false)
 		{
-			std::cout << "PRIVMSG user case\n";
-			send(usr->getFd(), RPL_PRIVMSG(user.getNick(), user.getUser(), usr->getNick(), message).c_str(), RPL_PRIVMSG(user.getNick(), user.getUser(), usr->getNick(), message).length(), 0);
-			//std::cout << "message user \t" + message + " usr = " << usr->getNick() << std::endl;
+			std::cout << magentabg << "--------------user *it is dead!!!!! in privmsg---------------" << std::endl;
+			return ;
 		}
-	}
-	else if (chan)
-	{
-		if (!chan->isUser(user))
-		{
-			send(user.getFd(), ERR_NOTONCHANNEL(user.getNick(), user.getNick(), params[0]).c_str(), ERR_NOTONCHANNEL(user.getNick(), user.getNick(), params[0]).length(), 0);
-			return;
-		}
-		std::cout << cyan << "\t\t" << chan->getName() <<reset <<std::endl;
-		std::vector<User *> users = chan->getUsers();
-		for (size_t i = 0; i < users.size(); i++)
-		{
-			if (user.getNick() != users[i]->getNick())
-			{
-				/* if (i==0)
-				{
-					std::cout << "PRIVMSG channel case\n";
-					std::cout << "users.size() = "<< users.size() <<" \n";
-				} */
-				send(users[i]->getFd(), RPL_PRIVMSG(user.getNick(), user.getUser(), chan->getName(), message).c_str(), RPL_PRIVMSG(user.getNick(), user.getUser(), chan->getName(), message).length(), 0);
-			}
-		}
-	}
-	else
-	{
-		send(user.getFd(), ERR_NOSUCHNICK(user.getNick(), params[0]).c_str(), ERR_NOSUCHNICK(user.getNick(), params[0]).length(), 0);
-		return ;
-	}
+		User* recipient;
+		recipient = *it;
+		if (server.isUserValid(recipient) == false)
+			std::cout << red << "recipient is null" << reset << std::endl;
+        if (recipient != &user && server.getUserByNick(recipient->getNick()) != nullptr)
+        {
+			std::cout << cyan << "recipient = " << recipient->getNick() << reset << std::endl;
+            send(recipient->getFd(), RPL_PRIVMSG(user.getNick(), user.getUser(), channel->getName(), message).c_str(), RPL_PRIVMSG(user.getNick(), user.getUser(), channel->getName(), message).length(), 0);
+        }
+    }
 }
 
 void	Command::ping(User &user, std::string prefix, std::vector<std::string> params)
 {
 	(void)prefix;
 	std::string pong;
-	server.handlePong(&user);
+	//server.handlePong(&user);
+	if (!server.isUserValid(&user))
+	{
+		std::cout << magenta << "user is dead!!!!! in ping" << reset << std::endl;
+		return ;
+	}
 	if (&user != nullptr)
 	{
+		std::cout << magenta << user.getNick() << reset << std::endl;
 		if (params.size() > 0) 
 			send(user.getFd(), RPL_PONG(user.getNick(), user.getUser(), params[0]).c_str(), RPL_PONG(user.getNick(), user.getUser(), params[0]).length(), 0);
 		else
 			send(user.getFd(), RPL_PONG(user.getNick(), user.getUser(), ":").c_str(), RPL_PONG(user.getNick(), user.getUser(), ":").length(), 0);
 	}
+	else
 		return ;
 }
 
@@ -430,6 +436,12 @@ void Command::parseLine(User &user, std::string line)
 	std::istringstream iss(line);
 	std::string prefix, command;
 	std::vector<std::string> params;
+	if (server.isUserValid(&user) == false)
+	{
+		std::cout << magenta << "user is dead!!!!! in parseline" << reset << std::endl;
+		std::cout << magenta << "line = " << line << reset << std::endl;
+		return ;
+	}
 	if (line[0] == ':')
 	{
 		iss >> prefix;
@@ -656,7 +668,13 @@ void Command::sendToAllJoinedChannel(User &user, std::string msg)
                 {
                     if (channelUser->getNick() != user.getNick())
                     {
-                        send(channelUser->getFd(), msg.c_str(), msg.length(), 0);
+						if (!server.isUserValid(channelUser))
+						{
+							std::cout << magenta << "user is dead!!!!! in sendToAllJoinedChannel" << reset << std::endl;
+							return ;	
+						}
+						else
+	                        send(channelUser->getFd(), msg.c_str(), msg.length(), 0);
                     }
                     usersAlreadyNotified.insert(channelUser);
                 }

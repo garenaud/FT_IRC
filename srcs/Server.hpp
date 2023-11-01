@@ -76,6 +76,7 @@ class Server
 		void	sendToAllUser(std::string msg);
 		void 	handlePong(User *user);
 		void 	checkForInactiveUser();
+		bool	isUserValid(User *user);
 
 	private:
 		int port;

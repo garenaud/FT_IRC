@@ -33,7 +33,26 @@ void	User::operator=(User const &src)
 	this->isRegistered = src.isRegistered;
 }
 
-bool	User::operator==(const User& other) const
+bool User::operator==(const User& other) const
+{
+    if (this == &other) {
+        return true;
+    }
+    if (this == nullptr || &other == nullptr) {
+        return false;
+    }
+    return (this->fd == other.fd &&
+            this->nick == other.nick &&
+            this->user == other.user &&
+            this->passwd == other.passwd &&
+            this->realname == other.realname &&
+            this->hostname == other.hostname &&
+            this->mode == other.mode &&
+            this->isRegistered == other.isRegistered); //&&
+            //this->channels.size() == other.channels.size() &&
+            //std::equal(this->channels.begin(), this->channels.end(), other.channels.begin()));
+}
+/* bool	User::operator==(const User& other) const
 {
 	return (this->fd == other.fd &&
 			this->nick == other.nick &&
@@ -43,7 +62,7 @@ bool	User::operator==(const User& other) const
 			this->hostname == other.hostname &&
 			this->mode == other.mode &&
 			this->isRegistered == other.isRegistered);
-}
+} */
 
 /* void	User::setFd(int fd)
 {
@@ -52,7 +71,7 @@ bool	User::operator==(const User& other) const
 
 int		User::getFd()
 {
-	if (!this->fd)
+	if (this == nullptr)
 		return 0;
 	return this->fd;
 }
@@ -176,6 +195,8 @@ bool	User::isInvited(std::string channelName) const
 
 void	User::addJoinedChannel(Channel *channel)
 {
+	if (channel == NULL)
+		return;
 	this->joinedChannels.push_back(channel);
 }
 
@@ -241,7 +262,20 @@ bool	User::isOperator(std::string channelName) const
 
 void	User::setLastPing(time_t lastPing)
 {
-	this->lastPing = lastPing;
+    if (this == nullptr) {
+        return;
+    }
+    if (lastPing < 0) {
+        lastPing = 0;
+    }
+    if (lastPing > LONG_MAX - 240) {
+        lastPing = LONG_MAX - 240;
+    }
+    this->lastPing = lastPing;
+/* 	if (this->lastPing == 0)
+		this->lastPing = lastPing;
+	else
+		this->lastPing = lastPing; */
 }
 
 time_t	User::getLastPing()

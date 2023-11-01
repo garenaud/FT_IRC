@@ -36,6 +36,7 @@ const std::string greenbg("\033[1;42m");
 const std::string yellow("\033[1;33m");
 const std::string yellowbg("\033[1;43m");
 const std::string cyan("\033[0;36m");
+const std::string cyanbg("\033[0;46m");
 const std::string magenta("\033[0;35m");
 const std::string magentabg("\033[0;45m");
 const std::string reset("\033[0m");

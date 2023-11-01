@@ -73,6 +73,7 @@ class Channel
 		void	rmChanops(User &user);
 		void	kickUser(User &user, User &chanop);
 		void	kickChanops(User &user, User &chanop);
+		void	rmUser(User &user);
 
 		void	printUsers();
 		void	printChanops();

@@ -332,7 +332,13 @@ void	Channel::kickChanops(User &user, User &chanop)
 	}
 }
 
-
+void	Channel::rmUser(User &user)
+{
+	std::vector<User *>::iterator it = std::find(_users.begin(), _users.end(), &user);
+	if (it != _users.end())
+		_users.erase(it);
+	printUsers();
+}
 
 ///// Utiles //////////////////////////////////////////////////////////////////////
 
