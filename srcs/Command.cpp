@@ -122,11 +122,6 @@ void	Command::privmsg(User &user, std::string prefix, std::vector<std::string> p
 		{
 			if (user.getNick() != users[i]->getNick())
 			{
-				/* if (i==0)
-				{
-					std::cout << "PRIVMSG channel case\n";
-					std::cout << "users.size() = "<< users.size() <<" \n";
-				} */
 				send(users[i]->getFd(), RPL_PRIVMSG(user.getNick(), user.getUser(), chan->getName(), message).c_str(), RPL_PRIVMSG(user.getNick(), user.getUser(), chan->getName(), message).length(), 0);
 			}
 		}
@@ -313,7 +308,7 @@ void	Command::join(User &user, std::string prefix, std::vector<std::string> para
 		return ;
 	}
 	std::string channel = params[0];
-	if (channel[0] != '#')
+	if (channel.c_str()[0] != '#')
 	{
 		send(user.getFd(), ERR_NOSUCHCHANNEL(user.getNick(), channel).c_str(), ERR_NOSUCHCHANNEL(user.getNick(), channel).length(), 0);
 		return ;

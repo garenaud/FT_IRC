@@ -71,6 +71,7 @@ class Channel
 		void	inviteUser(User &user, User &chanop);
 		void	addChanops(User &user, User &chanop);
 		void	rmChanops(User &user);
+		void	rmUser(User &user);
 		void	kickUser(User &user, User &chanop);
 		void	kickChanops(User &user, User &chanop);
 

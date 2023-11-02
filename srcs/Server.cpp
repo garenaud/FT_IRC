@@ -257,7 +257,16 @@ void Server::removeUser(int fd)
     int index = getUserIndex(fd);
     if (index != -1)
     {
-        users.erase(users.begin() + index);
+		for (std::map<std::string, Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
+		{
+			if (it->second.isUser(users[index]))
+			{
+				if (it->second.isChanops(users[index]))
+					it->second.rmChanops(users[index]);
+				it->second.rmUser(users[index]);
+			}
+		}
+		users.erase(users.begin() + index);
     }
     std::cout << redbg << "User removed" << reset << std::endl;
 }
