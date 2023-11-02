@@ -125,7 +125,8 @@ void    Server::del_from_pfds(int index)
 {// a voir, manque test erreur
     if (index != -1 && static_cast<std::vector<User>::size_type>(index) < pfds.size())
     {
-        removeUser(this->pfds[index].fd);
+        //removeUser(this->pfds[index].fd);
+        removeUser(pfds[index].fd);
         pfds.erase(pfds.begin() + index);
         //this->pfds.erase(this->pfds.begin() + index);
     }

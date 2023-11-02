@@ -118,7 +118,7 @@ void Command::privmsg(User& user, std::string prefix, std::vector<std::string> p
         return;
     }
 
-    if (!channel->isUser(user) && server.getUserByNick(user.getNick()) != nullptr)
+    if (!channel->isUser(user) && server.getUserByNick(user.getNick()) != NULL)
     {
         send(user.getFd(), ERR_NOTONCHANNEL(user.getNick(), user.getNick(), receiver).c_str(), ERR_NOTONCHANNEL(user.getNick(), user.getNick(), receiver).length(), 0);
         return;
@@ -139,7 +139,7 @@ void Command::privmsg(User& user, std::string prefix, std::vector<std::string> p
 		recipient = *it;
 		if (server.isUserValid(recipient) == false)
 			std::cout << red << "recipient is null" << reset << std::endl;
-        if (recipient != &user && server.getUserByNick(recipient->getNick()) != nullptr)
+        if (recipient != &user && server.getUserByNick(recipient->getNick()) != NULL)
         {
 			std::cout << cyan << "recipient = " << recipient->getNick() << reset << std::endl;
             send(recipient->getFd(), RPL_PRIVMSG(user.getNick(), user.getUser(), channel->getName(), message).c_str(), RPL_PRIVMSG(user.getNick(), user.getUser(), channel->getName(), message).length(), 0);
