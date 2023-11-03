@@ -65,7 +65,7 @@ class Server
 		int 	getPfdsIndex(int fd);
 		int		getUserIndex(int fd);
 		void 	displayUsers();
-		std::vector<User>	getUser();
+		std::map<int, User>	getUser();
 
 		Channel	*getChannel(std::string channelName);
 		void	createChannel(std::string channelName, User *user);
@@ -90,7 +90,7 @@ class Server
 		struct		timeval tv;
 		struct	addrinfo	hints;
 		std::vector<pollfd>	pfds;
-		std::vector<User> users;
+		std::map<int, User> users;
 		struct sockaddr_storage remoteaddr;
 		std::map<std::string, Channel> channels;
 };

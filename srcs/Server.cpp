@@ -8,7 +8,7 @@ bool Server::stop = false;
 Server::Server() 
 {
     this->stop = false;
-    this->users.reserve(MAX_USER);
+    //this->users.reserve(MAX_USER);
 }
 Server::~Server() {}
 
@@ -164,7 +164,9 @@ void Server::handleClient(Msg &aMess, int index)
     memset(this->buffer, 0, sizeof(this->buffer));
     int nbytes = recv(pfds[index].fd, this->buffer, sizeof(this->buffer), 0);
     int sender_fd = pfds[index].fd;
-    aMess.initialize(sender_fd, users[getUserIndex(sender_fd)], this->buffer, nbytes);
+	std::map<int, User>::iterator it = this->users.find(sender_fd);
+	if (it != this->users.end())
+    	aMess.initialize(sender_fd, it->second, this->buffer, nbytes);
     aMess.split2("\r\n");
     if (nbytes <= 0)
     {
@@ -185,7 +187,9 @@ void Server::handleClient(Msg &aMess, int index)
         Command cmd(*this);
         while(aMess.getMessageSize() > 0)
         {
-            cmd.parseLine(users[getUserIndex(sender_fd)], aMess.getMessage());
+			std::map<int, User>::iterator it = this->users.find(sender_fd);
+			if (it != this->users.end())
+            	cmd.parseLine(it->second, aMess.getMessage());
         }
        /* for(int j = 0; j < (int)this->pfds.size(); j++)
         {// ici envoi des messages
@@ -219,55 +223,66 @@ void    Server::run()
         perror("poll");
         exit(1);
     }
-         for(size_t i = 0; i < this->pfds.size(); i++)
-         {
-              if (this->pfds[i].revents & POLLIN)
-              {
-                  if (this->pfds[i].fd == this->listener_socket)
-                  {
-                      handleNewConnection();
-                  }
-                  else
-                  {
-                      handleClient(aMess,i);
-                  }
-              }
-         }
+        for(size_t i = 0; i < this->pfds.size(); i++)
+        {
+            if (this->pfds[i].revents & POLLIN)
+            {
+            	if (this->pfds[i].fd == this->listener_socket)
+                {
+					handleNewConnection();
+				}
+                else
+                {
+                	handleClient(aMess,i);
+                }
+            }
+        }
     }
 }
 
 void Server::addUser(int fd)
 {
     User newUser(fd);
-    users.push_back(newUser);
+	this->users.insert(std::pair<int, User>(fd, newUser));
+    // users.push_back(newUser);
 /*     for (size_t i = 0; i < users.size(); ++i)
     {
         std::cout << yellow << "FD = " << users[i].getFd() << " NICKNAME = " << users[i].getNick() << " USERNAME = " << users[i].getUser() << reset << std::endl;
     } */
 	std::cout << "Users on server :" << std::endl;  //test
-	for (int i = 0; i < static_cast<int>(this->users.size()); i++)  //test
+	for (std::map<int, User>::iterator it = users.begin(); it != users.end(); ++it)
 	{
-		std::cout << i << " = " << this->users[i].getNick() << std::endl;  //test
+		std::cout << it->first << " = " << it->second.getNick() << std::endl;  //test
 	}
+	// for (int i = 0; i < static_cast<int>(this->users.size()); i++)  //test
+	// {
+	// 	std::cout << i << " = " << this->users[i].getNick() << std::endl;  //test
+	// }
 
 }
 
 void Server::removeUser(int fd)
 {
     int index = getUserIndex(fd);
-    if (index != -1)
-    {
-		for (std::map<std::string, Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
-		{
-			if (it->second.isUser(users[index]))
+	std::map<int, User>::iterator it2 = this->users.find(fd);
+	if (it2 != this->users.end())
+	{
+    	if (index != -1)
+    	{
+			for (std::map<std::string, Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
 			{
-				if (it->second.isChanops(users[index]))
-					it->second.rmChanops(users[index]);
-				it->second.rmUser(users[index]);
+				if (it->second.isUser(it2->second))
+				{
+					if (it->second.isChanops(it2->second))
+						it->second.rmChanops(it2->second);
+					it->second.rmUser(it2->second);
+				}
 			}
-		}
-		users.erase(users.begin() + index);
-    }
+			displayUsers();
+			users.erase(fd);
+			displayUsers();
+    	}
+	}
     std::cout << redbg << "User removed" << reset << std::endl;
 }
 
@@ -280,35 +295,51 @@ void Server::sendPing(int client_fd)
 
 bool    Server::isNickAvailable(const std::string& nick)
 {
-    for (size_t i = 0; i < users.size(); ++i)
-    {
-        if (users[i].getNick() == nick)
-        {
-            return false;
-        }
-    }
+	std::cout << "Users on server :" << std::endl;  //test
+	for (std::map<int, User>::iterator it = users.begin(); it != users.end(); ++it)
+	{
+		if (it->second.getNick() == nick)
+			return false;
+	}
+    // for (size_t i = 0; i < users.size(); ++i)
+    // {
+    //     if (users[i].getNick() == nick)
+    //     {
+    //         return false;
+    //     }
+    // }
     return true;
 }
 
 int     Server::getUserIndex(int fd)
 {
-    for (size_t i = 0; i < users.size(); ++i)
-    {
-        if (users[i].getFd() == fd)
-        {
-            return i;
-        }
-    }
+	for (std::map<int, User>::iterator it = users.begin(); it != users.end(); ++it)
+	{
+		if (it->first == fd)
+			return fd;
+	}
+    // for (size_t i = 0; i < users.size(); ++i)
+    // {
+    //     if (users[i].getFd() == fd)
+    //     {
+    //         return i;
+    //     }
+    // }
     return -1;
 }
 
 User    *Server::getUserByNick(const std::string& nick)
 {
-    for (size_t i = 0; i < this->users.size(); ++i)
-    {
-        if (this->users[i].getNick() == nick)
-            return &(this->users[i]);
-    }
+	for (std::map<int, User>::iterator it = users.begin(); it != users.end(); ++it)
+	{
+		if (it->second.getNick() == nick)
+			return &(it->second);
+	}
+    // for (size_t i = 0; i < this->users.size(); ++i)
+    // {
+    //     if (this->users[i].getNick() == nick)
+    //         return &(this->users[i]);
+    // }
     return nullptr;
 }
 
@@ -332,10 +363,15 @@ std::string Server::getPasswd()
 void    Server::displayUsers()
 {
     std::cout << yellow << "Nombre d'utilisateurs connectes : " << users.size() << reset << std::endl;
-    for (size_t i = 0; i < users.size(); ++i)
-    {
-        std::cout << yellowbg << "FD = " << users[i].getFd() << "\t NICKNAME = " << users[i].getNick() << "\t USERNAME = " << users[i].getUser() << "\t REALNAME = " << users[i].getRealname() << "\t HOSTNAME = " << users[i].getHostname() <<  reset << std::endl;
-    }
+    for (std::map<int, User>::iterator it = users.begin(); it != users.end(); ++it)
+	{
+		std::cout << yellowbg << "FD = " << it->first << "\t NICKNAME = " << it->second.getNick() << "\t USERNAME = " << it->second.getUser() << "\t REALNAME = " << it->second.getRealname() << "\t HOSTNAME = " << it->second.getHostname() <<  reset << std::endl;
+
+	}
+	// for (size_t i = 0; i < users.size(); ++i)
+    // {
+    //     std::cout << yellowbg << "FD = " << users[i].getFd() << "\t NICKNAME = " << users[i].getNick() << "\t USERNAME = " << users[i].getUser() << "\t REALNAME = " << users[i].getRealname() << "\t HOSTNAME = " << users[i].getHostname() <<  reset << std::endl;
+    // }
 }
 
 Channel	*Server::getChannel(std::string channelName)
@@ -366,15 +402,19 @@ void	Server::rmChannel(std::string channelName)
 	this->channels.erase(channelName);
 }
 
-std::vector<User>	Server::getUser()
+std::map<int, User>	Server::getUser()
 {
     return this->users;
 }
 
 void    Server::sendToAllUser(std::string msg)
 {
-    for (unsigned int i = 0; i < this->users.size(); i++)
-    {
-        send(this->users[i].getFd(), msg.c_str(), msg.length(), 0);
-    }
+	for (std::map<int, User>::iterator it2 = this->users.begin(); it2 != this->users.end(); ++it2)
+	{
+		send(it2->first, msg.c_str(), msg.length(), 0);
+	}
+    // for (unsigned int i = 0; i < this->users.size(); i++)
+    // {
+    //     send(this->users[i].getFd(), msg.c_str(), msg.length(), 0);
+    // }
 }
