@@ -9,7 +9,7 @@ int main(int argc, char *argv[])
 		std::cout << red << "Usage: ./Servers port password\n" << reset;
 		return (-1);
 	}
-		//Msg message;// ?
+	//Msg message;// ?
 	Server aServer;
 	struct sigaction sa;
 	sa.sa_handler = Server::signalHandler;
@@ -22,7 +22,7 @@ int main(int argc, char *argv[])
 	while (aServer.getStop() == false)
 		aServer.run();
 	std::string msg = "Server is shutting down. Goodbye!\r\n";
-    aServer.sendToAllUser(msg);
+	aServer.sendToAllUser(msg);
 	system("leaks Servers");
 	return (0);
 }

@@ -7,268 +7,224 @@ bool Server::stop = false;
 
 Server::Server() 
 {
-    this->stop = false;
-    //this->users.reserve(MAX_USER);
+	this->stop = false;
 }
 Server::~Server() {}
 
-void    Server::setPort(int port)
+void	Server::setPort(int port)
 {
-    this->port = port;
+	this->port = port;
 }
-void    Server::setStop(bool status)
+void	Server::setStop(bool status)
 {
-    Server::stop = status;
-}
-
-void    Server::setPasswd(std::string passwd)
-{
-    this->passwd = passwd;
+	Server::stop = status;
 }
 
-void    Server::setTV(int sec, int musec)
+void	Server::setPasswd(std::string passwd)
 {
-    this->tv.tv_sec = sec;
-    this->tv.tv_usec = musec;
+	this->passwd = passwd;
 }
 
-int     Server::getPort()
+void	Server::setTV(int sec, int musec)
 {
-    return this->port;
+	this->tv.tv_sec = sec;
+	this->tv.tv_usec = musec;
 }
 
-bool    Server::getStop()
+int	 Server::getPort()
 {
-    return this->stop;
+	return this->port;
 }
 
-void    Server::signalHandler(int signum) 
+bool	Server::getStop()
 {
-    if (signum == SIGINT) {
-        std::cout << "-> Server shutdown requested. Exiting..." << std::endl << std::endl;
-        Server::stop = true;
-    }
+	return this->stop;
 }
 
-void    *Server::get_in_addr(struct sockaddr *sa)
+void	Server::signalHandler(int signum) 
 {
-    if (sa->sa_family == AF_INET) {
-        return &(reinterpret_cast<struct sockaddr_in*>(sa)->sin_addr);
-    }
-    return &(reinterpret_cast<struct sockaddr_in6*>(sa)->sin6_addr);
+	if (signum == SIGINT)
+	{
+		std::cout << "-> Server shutdown requested. Exiting..." << std::endl << std::endl;
+		Server::stop = true;
+	}
 }
 
-void    Server::setHint(int family, int type, int flag)
+void	*Server::get_in_addr(struct sockaddr *sa)
 {
-    std::memset(&this->hints, 0, sizeof(this->hints));
-    this->hints.ai_family = family;
-    this->hints.ai_socktype = type;
-    this->hints.ai_flags = flag;
+	if (sa->sa_family == AF_INET)
+		return &(reinterpret_cast<struct sockaddr_in*>(sa)->sin_addr);
+	return &(reinterpret_cast<struct sockaddr_in6*>(sa)->sin6_addr);
 }
 
-int     Server::get_listener_socket(void)
+void	Server::setHint(int family, int type, int flag)
 {
-    int listener;     // Listening socket descriptor
-    int yes=1;        // For setsockopt() SO_REUSEADDR, below
-    int rv;
-
-    struct addrinfo *ai, *p;
-    setHint(AF_UNSPEC, SOCK_STREAM, AI_PASSIVE);
-    // voir si possible amelioration
-    std::string s;
-    std::stringstream out;
-    out << getPort();
-    s = out.str();
-    const char * port = s.c_str();
-    if ((rv = getaddrinfo(NULL, port, &this->hints, &ai)) != 0)
-    {
-        std::cerr << "selectserver: " << gai_strerror(rv) << std::endl;
-        exit(1);
-    }
-    for(p = ai; p != NULL; p = p->ai_next)
-    {
-        listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
-        if (listener < 0) { continue; }
-        setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
-        if (bind(listener, p->ai_addr, p->ai_addrlen) < 0) {
-            close(listener);
-            continue;
-        }
-
-        break;
-    }
-    if (p == NULL) { return -1;}
-    freeaddrinfo(ai); // All done with this
-
-    // Listen
-    if (listen(listener, 10) == -1) {return -1;}
-    return listener;
+	std::memset(&this->hints, 0, sizeof(this->hints));
+	this->hints.ai_family = family;
+	this->hints.ai_socktype = type;
+	this->hints.ai_flags = flag;
 }
 
-void    Server::add_to_pfds(int newfd)
+int	 Server::get_listener_socket(void)
 {
-    struct pollfd   data;
+	int listener;	 // Listening socket descriptor
+	int yes=1;		// For setsockopt() SO_REUSEADDR, below
+	int rv;
 
-    data.fd = newfd;
-    data.events = POLLIN;
+	struct addrinfo *ai, *p;
+	setHint(AF_UNSPEC, SOCK_STREAM, AI_PASSIVE);
+	// voir si possible amelioration
+	std::string s;
+	std::stringstream out;
+	out << getPort();
+	s = out.str();
+	const char * port = s.c_str();
+	if ((rv = getaddrinfo(NULL, port, &this->hints, &ai)) != 0)
+	{
+		std::cerr << "selectserver: " << gai_strerror(rv) << std::endl;
+		exit(1);
+	}
+	for(p = ai; p != NULL; p = p->ai_next)
+	{
+		listener = socket(p->ai_family, p->ai_socktype, p->ai_protocol);
+		if (listener < 0)
+			continue;
+		setsockopt(listener, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(int));
+		if (bind(listener, p->ai_addr, p->ai_addrlen) < 0)
+		{
+			close(listener);
+			continue;
+		}
 
-    this->pfds.push_back(data);
+		break;
+	}
+	if (p == NULL)
+		return -1;
+	freeaddrinfo(ai); // All done with this
+	// Listen
+	if (listen(listener, 10) == -1)
+		return -1;
+	return listener;
 }
 
-void    Server::del_from_pfds(int index)
+void	Server::add_to_pfds(int newfd)
+{
+	struct pollfd   data;
+	data.fd = newfd;
+	data.events = POLLIN;
+	this->pfds.push_back(data);
+}
+
+void	Server::del_from_pfds(int index)
 {// a voir, manque test erreur
-    if (index < (int)this->pfds.size())
-    {
-        removeUser(this->pfds[index].fd);
-        this->pfds.erase(this->pfds.begin() + index);
-    }
+	if (index < (int)this->pfds.size())
+	{
+		removeUser(this->pfds[index].fd);
+		this->pfds.erase(this->pfds.begin() + index);
+	}
 }
 
-void    Server::setListeningSocket()
+void	Server::setListeningSocket()
 {
-    this->listener_socket = get_listener_socket();
-    if (this->listener_socket == -1)
-    {
-        std::cerr << "error getting listening socket\n";
-        exit (1);
-    }
-    add_to_pfds(this->listener_socket);
+	this->listener_socket = get_listener_socket();
+	if (this->listener_socket == -1)
+	{
+		std::cerr << "error getting listening socket\n";
+		exit (1);
+	}
+	add_to_pfds(this->listener_socket);
 }
 
-void    Server::handleNewConnection()
+void	Server::handleNewConnection()
 {
-    std::string connection;
+	std::string connection;
 
-    this->addrlen = sizeof(this->remoteaddr);
-    this->accepted_socket = accept(this->listener_socket,reinterpret_cast<struct sockaddr *>(&this->remoteaddr), &(this->addrlen));
-    if (this->accepted_socket == -1)
-    {
-        perror("accept");
-    }
-    else
-    {
-        add_to_pfds(this->accepted_socket);
-        // a voir ici
-        addUser(this->accepted_socket);
-
-        const char* c =this->remoteIP.c_str();
-        connection = inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),(char *)c, INET6_ADDRSTRLEN);
-
-        std::cout << "pollserver: new connection from "<< connection << " on socket " << accepted_socket << std::endl;
-    }
+	this->addrlen = sizeof(this->remoteaddr);
+	this->accepted_socket = accept(this->listener_socket,reinterpret_cast<struct sockaddr *>(&this->remoteaddr), &(this->addrlen));
+	if (this->accepted_socket == -1)
+		perror("accept");
+	else
+	{
+		add_to_pfds(this->accepted_socket);
+		addUser(this->accepted_socket);
+		const char* c =this->remoteIP.c_str();
+		connection = inet_ntop(remoteaddr.ss_family, get_in_addr((struct sockaddr*)&remoteaddr),(char *)c, INET6_ADDRSTRLEN);
+		std::cout << "pollserver: new connection from "<< connection << " on socket " << accepted_socket << std::endl;
+	}
 }
 
 void Server::handleClient(Msg &aMess, int index)
 {
-
-    memset(this->buffer, 0, sizeof(this->buffer));
-    int nbytes = recv(pfds[index].fd, this->buffer, sizeof(this->buffer), 0);
-    int sender_fd = pfds[index].fd;
+	memset(this->buffer, 0, sizeof(this->buffer));
+	int nbytes = recv(pfds[index].fd, this->buffer, sizeof(this->buffer), 0);
+	int sender_fd = pfds[index].fd;
 	std::map<int, User>::iterator it = this->users.find(sender_fd);
 	if (it != this->users.end())
-    	aMess.initialize(sender_fd, it->second, this->buffer, nbytes);
-    aMess.split2("\r\n");
-    if (nbytes <= 0)
-    {
-        if (nbytes == 0)
-        {
-            std::cerr << "pollserver: socket " << sender_fd << " hung up\n";
-        }
-        else
-        {
-            perror("recv");
-        }
-        close(pfds[index].fd);
-        del_from_pfds(index);
-    }
-    else
-    {
-        std::string received_data(this->buffer, nbytes);
-        Command cmd(*this);
-        while(aMess.getMessageSize() > 0)
-        {
+		aMess.initialize(sender_fd, it->second, this->buffer, nbytes);
+	aMess.split2("\r\n");
+	if (nbytes <= 0)
+	{
+		if (nbytes == 0)
+			std::cerr << "pollserver: socket " << sender_fd << " hung up\n";
+		else
+			perror("recv");
+		close(pfds[index].fd);
+		del_from_pfds(index);
+	}
+	else
+	{
+		std::string received_data(this->buffer, nbytes);
+		Command cmd(*this);
+		while(aMess.getMessageSize() > 0)
+		{
 			std::map<int, User>::iterator it = this->users.find(sender_fd);
 			if (it != this->users.end())
-            	cmd.parseLine(it->second, aMess.getMessage());
-        }
-       /* for(int j = 0; j < (int)this->pfds.size(); j++)
-        {// ici envoi des messages
-            int dest_fd = pfds[j].fd;
-            if (dest_fd != this->listener_socket && dest_fd != sender_fd)
-            {// a voir ici si pas a changer...
-                if (send(dest_fd, this->buffer, nbytes, 0) == -1)
-                {
-                    perror("send");
-                }
-            }
-        }*/
-
-    }
-
+				cmd.parseLine(it->second, aMess.getMessage());
+		}
+	}
 }
 
-void    Server::run()
+void	Server::run()
 {
-    setListeningSocket();
-      Msg     aMess;
-
-    for (;;)
-    {
-        int poll_count = poll(&pfds[0], this->pfds.size(), -1);
-        if (poll_count == -1) {
-        if (errno == EINTR) {
-            // L'appel à poll a été interrompu par un signal, ignorez et continuez
-            return;
-        }
-        perror("poll");
-        exit(1);
-    }
-        for(size_t i = 0; i < this->pfds.size(); i++)
-        {
-            if (this->pfds[i].revents & POLLIN)
-            {
-            	if (this->pfds[i].fd == this->listener_socket)
-                {
+	setListeningSocket();
+	Msg	aMess;
+	for (;;)
+	{
+		int poll_count = poll(&pfds[0], this->pfds.size(), -1);
+		if (poll_count == -1)
+		{
+			if (errno == EINTR)
+				return;
+			perror("poll");
+			exit(1);
+		}
+		for(size_t i = 0; i < this->pfds.size(); i++)
+		{
+			if (this->pfds[i].revents & POLLIN)
+			{
+				if (this->pfds[i].fd == this->listener_socket)
 					handleNewConnection();
-				}
-                else
-                {
-                	handleClient(aMess,i);
-                }
-            }
-        }
-    }
+				else
+					handleClient(aMess,i);
+			}
+		}
+	}
 }
 
 void Server::addUser(int fd)
 {
-    User newUser(fd);
+	User newUser(fd);
 	this->users.insert(std::pair<int, User>(fd, newUser));
-    // users.push_back(newUser);
-/*     for (size_t i = 0; i < users.size(); ++i)
-    {
-        std::cout << yellow << "FD = " << users[i].getFd() << " NICKNAME = " << users[i].getNick() << " USERNAME = " << users[i].getUser() << reset << std::endl;
-    } */
-	std::cout << "Users on server :" << std::endl;  //test
-	for (std::map<int, User>::iterator it = users.begin(); it != users.end(); ++it)
-	{
-		std::cout << it->first << " = " << it->second.getNick() << std::endl;  //test
-	}
-	// for (int i = 0; i < static_cast<int>(this->users.size()); i++)  //test
-	// {
-	// 	std::cout << i << " = " << this->users[i].getNick() << std::endl;  //test
-	// }
-
 }
 
 void Server::removeUser(int fd)
 {
-    int index = getUserIndex(fd);
+	int index = getUserIndex(fd);
 	std::map<int, User>::iterator it2 = this->users.find(fd);
 	if (it2 != this->users.end())
 	{
-    	if (index != -1)
-    	{
+		if (index != -1)
+		{
 			for (std::map<std::string, Channel>::iterator it = channels.begin(); it != channels.end(); ++it)
 			{
 				if (it->second.isUser(it2->second))
@@ -278,106 +234,67 @@ void Server::removeUser(int fd)
 					it->second.rmUser(it2->second);
 				}
 			}
-			displayUsers();
 			users.erase(fd);
 			displayUsers();
-    	}
+		}
 	}
-    std::cout << redbg << "User removed" << reset << std::endl;
 }
 
-void Server::sendPing(int client_fd)
+bool	Server::isNickAvailable(const std::string& nick)
 {
-    std::string ping_msg = "PING :localhost 6667\r\n";
-    send(client_fd, ping_msg.c_str(), ping_msg.length(), 0);
-    //std::cout << "Ping envoye \n";
-}
-
-bool    Server::isNickAvailable(const std::string& nick)
-{
-	std::cout << "Users on server :" << std::endl;  //test
 	for (std::map<int, User>::iterator it = users.begin(); it != users.end(); ++it)
 	{
 		if (it->second.getNick() == nick)
 			return false;
 	}
-    // for (size_t i = 0; i < users.size(); ++i)
-    // {
-    //     if (users[i].getNick() == nick)
-    //     {
-    //         return false;
-    //     }
-    // }
-    return true;
+	return true;
 }
 
-int     Server::getUserIndex(int fd)
+int	 Server::getUserIndex(int fd)
 {
 	for (std::map<int, User>::iterator it = users.begin(); it != users.end(); ++it)
 	{
 		if (it->first == fd)
 			return fd;
 	}
-    // for (size_t i = 0; i < users.size(); ++i)
-    // {
-    //     if (users[i].getFd() == fd)
-    //     {
-    //         return i;
-    //     }
-    // }
-    return -1;
+	return -1;
 }
 
-User    *Server::getUserByNick(const std::string& nick)
+User	*Server::getUserByNick(const std::string& nick)
 {
 	for (std::map<int, User>::iterator it = users.begin(); it != users.end(); ++it)
 	{
 		if (it->second.getNick() == nick)
 			return &(it->second);
 	}
-    // for (size_t i = 0; i < this->users.size(); ++i)
-    // {
-    //     if (this->users[i].getNick() == nick)
-    //         return &(this->users[i]);
-    // }
-    return nullptr;
+	return nullptr;
 }
 
-int     Server::getPfdsIndex(int fd)
+int	 Server::getPfdsIndex(int fd)
 {
-    for (size_t i = 0; i < pfds.size(); ++i)
-    {
-        if (pfds[i].fd == fd)
-        {
-            return i;
-        }
-    }
-    return -1;
+	for (size_t i = 0; i < pfds.size(); ++i)
+	{
+		if (pfds[i].fd == fd)
+			return i;
+	}
+	return -1;
 }
 
 std::string Server::getPasswd()
 {
-    return this->passwd;
+	return this->passwd;
 }
 
-void    Server::displayUsers()
+void	Server::displayUsers()
 {
-    std::cout << yellow << "Nombre d'utilisateurs connectes : " << users.size() << reset << std::endl;
-    for (std::map<int, User>::iterator it = users.begin(); it != users.end(); ++it)
-	{
+	std::cout << yellow << "Nombre d'utilisateurs connectes : " << users.size() << reset << std::endl;
+	for (std::map<int, User>::iterator it = users.begin(); it != users.end(); ++it)
 		std::cout << yellowbg << "FD = " << it->first << "\t NICKNAME = " << it->second.getNick() << "\t USERNAME = " << it->second.getUser() << "\t REALNAME = " << it->second.getRealname() << "\t HOSTNAME = " << it->second.getHostname() <<  reset << std::endl;
-
-	}
-	// for (size_t i = 0; i < users.size(); ++i)
-    // {
-    //     std::cout << yellowbg << "FD = " << users[i].getFd() << "\t NICKNAME = " << users[i].getNick() << "\t USERNAME = " << users[i].getUser() << "\t REALNAME = " << users[i].getRealname() << "\t HOSTNAME = " << users[i].getHostname() <<  reset << std::endl;
-    // }
 }
 
 Channel	*Server::getChannel(std::string channelName)
 {
 	std::map<std::string, Channel>::iterator it = this->channels.find(channelName);
-
 	if (it != this->channels.end())
 		return &(it->second);
 	else
@@ -388,13 +305,6 @@ void	Server::createChannel(std::string channelName, User *user)
 {
 	Channel channel(channelName, user);
 	this->channels.insert(std::make_pair(channelName, channel));
-
-	std::cout << "Channels on server :" << std::endl;  //test
-	int i = 0;
-	for (std::map<std::string, Channel>::iterator it = this->channels.begin(); it != this->channels.end(); ++it)  //test
-	{
-		std::cout << i++ << " = " << it->first << std::endl;  //test
-	}
 }
 
 void	Server::rmChannel(std::string channelName)
@@ -404,17 +314,11 @@ void	Server::rmChannel(std::string channelName)
 
 std::map<int, User>	Server::getUser()
 {
-    return this->users;
+	return this->users;
 }
 
-void    Server::sendToAllUser(std::string msg)
+void	Server::sendToAllUser(std::string msg)
 {
 	for (std::map<int, User>::iterator it2 = this->users.begin(); it2 != this->users.end(); ++it2)
-	{
 		send(it2->first, msg.c_str(), msg.length(), 0);
-	}
-    // for (unsigned int i = 0; i < this->users.size(); i++)
-    // {
-    //     send(this->users[i].getFd(), msg.c_str(), msg.length(), 0);
-    // }
 }

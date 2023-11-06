@@ -39,12 +39,13 @@ class Server
 	public:
 		Server();
 		~Server();
-		void		setPort(int port);
-		int			getPort();
+
+		void			setPort(int port);
+		int				getPort();
 		static void		setStop(bool status);
-		void		setPasswd(std::string passwd);
-		std::string	getPasswd();
-		void		setTV(int sec, int musec);
+		void			setPasswd(std::string passwd);
+		std::string		getPasswd();
+		void			setTV(int sec, int musec);
 
 		void	*get_in_addr(struct sockaddr *sa);
 		int		get_listener_socket(void);
@@ -59,40 +60,39 @@ class Server
 		void	addUser(int fd);
 		void	removeUser(int fd);
 
-		void	sendPing(int client_fd);
-		bool	isNickAvailable(const std::string& nick);
-		User	*getUserByNick(const std::string& nick);
-		int 	getPfdsIndex(int fd);
-		int		getUserIndex(int fd);
-		void 	displayUsers();
+		bool				isNickAvailable(const std::string& nick);
+		User				*getUserByNick(const std::string& nick);
+		int 				getPfdsIndex(int fd);
+		int					getUserIndex(int fd);
+		void 				displayUsers();
 		std::map<int, User>	getUser();
 
-		Channel	*getChannel(std::string channelName);
-		void	createChannel(std::string channelName, User *user);
-		void	rmChannel(std::string channelName);
+		Channel		*getChannel(std::string channelName);
+		void		createChannel(std::string channelName, User *user);
+		void		rmChannel(std::string channelName);
 
 		static void		signalHandler(int signum);
-		bool	getStop();
-		void	sendToAllUser(std::string msg);
+		bool			getStop();
+		void			sendToAllUser(std::string msg);
 
 	private:
-		int port;
-		std::string passwd;
-		static bool stop;
+		int			port;
+		std::string	passwd;
+		static bool	stop;
 
 		// variable main...
 		int				listener_socket;
 		int				accepted_socket;
-		char		    buffer[512];
+		char			buffer[512];
 		std::string		remoteIP;
 		socklen_t		addrlen;
 
-		struct		timeval tv;
-		struct	addrinfo	hints;
-		std::vector<pollfd>	pfds;
-		std::map<int, User> users;
-		struct sockaddr_storage remoteaddr;
-		std::map<std::string, Channel> channels;
+		struct		timeval				tv;
+		struct	addrinfo				hints;
+		std::vector<pollfd>				pfds;
+		std::map<int, User> 			users;
+		struct sockaddr_storage			remoteaddr;
+		std::map<std::string, Channel>	channels;
 };
 
 #endif

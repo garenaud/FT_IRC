@@ -2,12 +2,10 @@
 #include "Server.hpp"
 
 User::User(int fd, std::string nick, std::string user) : fd(fd), nick(nick), user(user), passwd("none"), realname("none"), hostname("none"), mode("0"), isRegistered(0), isAlive(true)
-{
-}
+{}
 
 User::User(int fd) : fd(fd), nick("none"), user("none"), passwd("none"), realname("none"), hostname("none"), mode("0"), isRegistered(0), isAlive(true)
-{
-}
+{}
 
 User::~User() 
 {
@@ -21,7 +19,6 @@ bool	User::getIsAlive() const
 
 void	User::operator=(User const &src)
 {
-	//this->fd = src.fd;
 	this->nick = src.nick;
 	this->user = src.user;
 	this->passwd = src.passwd;
@@ -43,11 +40,6 @@ bool	User::operator==(const User& other) const
 			this->isRegistered == other.isRegistered);
 }
 
-/* void	User::setFd(int fd)
-{
-	this->fd = fd;
-} */
-
 int		User::getFd()
 {
 	if (!this->fd)
@@ -58,7 +50,6 @@ int		User::getFd()
 void	User::setNick(std::string nick)
 {
 	this->nick = nick;
-	//std::cout << greenbg << "new nickname = " << this->nick << "fd = " << this->fd << reset << std::endl;
 }
 
 std::string	User::getNick()
@@ -70,7 +61,6 @@ void	User::setUser(std::string user)
 {
 	this->user = user;
 	checkRegistration();
-	//std::cout << greenbg << "new username = " << this->user << " fd = " << this->fd << reset << std::endl;
 }
 
 std::string	User::getUser()
@@ -121,14 +111,10 @@ std::string	User::getMode()
 
 void User::checkRegistration() 
 {
-    if (this->getNick() != "none" && this->getNick() != "*" && this->getUser() != "none" && this->getPasswd() != "none")
-	{
-        this->isRegistered = 1;
-    }
+	if (this->getNick() != "none" && this->getNick() != "*" && this->getUser() != "none" && this->getPasswd() != "none")
+		this->isRegistered = 1;
 	else
-	{
 		this->isRegistered = 0;
-	}
 }
 
 void User::setIsRegistered(int isRegistered)
@@ -143,8 +129,8 @@ int User::getIsRegistered()
 
 std::ostream& operator<<(std::ostream& o, User &src) 
 {
-    o << "User = " << src.getUser() << ", Nick = " << src.getNick() << ", FD = " << src.getFd();
-    return o;
+	o << "User = " << src.getUser() << ", Nick = " << src.getNick() << ", FD = " << src.getFd();
+	return o;
 }
 
 void	User::addInvitedChannel(std::string channelName)
@@ -215,6 +201,7 @@ void	User::sendAllJoinedChannels(std::string msg)
 		}
 	}
 }
+
 void	User::addOperatorChannel(std::string channelName)
 {
 	this->operatorChannels.push_back(channelName);

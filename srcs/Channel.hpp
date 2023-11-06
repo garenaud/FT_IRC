@@ -13,14 +13,13 @@ struct	Mode
 	bool	i; // invited-only, should recieve INVITE, if not err 473
 	bool	t; // protected topic, channops only TOPIC
 	bool	k; // key channel, need key to JOIN, err 696, 525, 475
-	// bool	o; // give/take chanops priv
 	bool	l; // set max user (int), err 471
 };
 
 class Channel
 {
 	private:
-		std::string			_name;  // char[0] = '&','#','+','!' char[50] max, no ' ',','
+		std::string			_name;
 		std::string			_topic;
 		Mode				_mode;
 		int					_max;
@@ -44,7 +43,6 @@ class Channel
 		bool				getModeI() const;
 		bool				getModeT() const;
 		bool				getModeK() const;
-		// bool				getModeO() const;
 		bool				getModeL() const;
 		int					getMax() const;
 		std::string			getPassword() const;
@@ -74,9 +72,6 @@ class Channel
 		void	rmUser(User &user);
 		void	kickUser(User &user, User &chanop);
 		void	kickChanops(User &user, User &chanop);
-
-		void	printUsers();
-		void	printChanops();
 
 };
 

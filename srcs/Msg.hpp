@@ -48,7 +48,6 @@ typedef	struct	incomingMessage
 	User				*user;
 	char				buffer_in[512];
 	size_t				recv_size; //la qut de caracteres recus
-//	long int			date; // a voir si utile date de reception + format
 	std::deque<char>	buffer;
 } incomingMessage;
 
@@ -59,7 +58,6 @@ typedef	struct	outgoingMessage
 	std::string			message;
 	char				buffer_in[512];
 	size_t				message_size; //la qut de caracteres recus
-	//long int			date; // a voir si utile date de reception + format
 } outgoingMessage;
 
 class Msg
@@ -67,29 +65,21 @@ class Msg
 	public:
 		Msg();
 		~Msg();
-		bool	is_complete(char * buff, size_t size);//
-		size_t	size_buffer(char * buff, size_t size);//
-		int		load_buffer(char * buff, size_t size);
-		void	trim_buffer();
-		void	test();
-		void	view();//
-		void	split(std::string sep);
-		void	split2(std::string sep);
+		int			load_buffer(char * buff, size_t size);
+		void		split(std::string sep);
+		void		split2(std::string sep);
 		std::string	getMessage();// a modifier pour qu il prenne la queue
-		int		getMessageSize();
-
-		int		initialize(int acc_socket, User &user, char * buff, int recv_size);
+		int			getMessageSize();
+		int			initialize(int acc_socket, User &user, char * buff, int recv_size);
 
 	private:
-		char									buffer_in[512];
-		char									buffer_out[512];
-		static size_t							incomingCount;
-		static size_t							outgoingCount;
-		std::deque<char>						buffer;
-		incomingMessage							aMessage;
-		outgoingMessage							uniqueMessage;
-		std::deque<incomingMessage>				received_message;
-		std::deque<outgoingMessage>				message_list;
+		char							buffer_in[512];
+		char							buffer_out[512];
+		std::deque<char>				buffer;
+		incomingMessage					aMessage;
+		outgoingMessage					uniqueMessage;
+		std::deque<incomingMessage>		received_message;
+		std::deque<outgoingMessage>		message_list;
 };
 
 #endif

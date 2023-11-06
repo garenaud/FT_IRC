@@ -10,7 +10,6 @@ std::string	ERR_UNKNOWNCOMMAND(const std::string client, const std::string comma
 	return (":localhost 421 " + client + " " + command + " :Unknown command\r\n");
 }
 
-
 // INVITE
 std::string	ERR_NEEDMOREPARAMS(const std::string client, const std::string command)
 {
@@ -96,7 +95,6 @@ std::string	RPL_UMODEIS(const std::string client, const std::string mode)
 	return (":localhost 221 " + client + " " + mode + "\r\n");
 }
 
-
 /* channel mode */
 std::string	MODE_CHANNELMSG(const std::string channel, const std::string mode)
 {
@@ -113,7 +111,6 @@ std::string	RPL_CHANNELMODEIS(const std::string client, const std::string channe
 {
 	return (":localhost 324 " + client + " " + channel + " " + mode + "\r\n");
 }
-
 
 std::string	RPL_CHANNELMODEISWITHKEY(const std::string client, const std::string channel, const std::string mode, const std::string password)
 {
@@ -140,7 +137,6 @@ std::string	RPL_ADDVOICE(const std::string nickname, const std::string username,
 	return (":" + nickname + "!" + username + "@localhost MODE " + channel + " " + mode + " " + param + "\r\n");
 }
 
-
 // NAMES
 std::string	RPL_NAMREPLY(const std::string client, const std::string channel, const std::string list_of_nicks)
 {
@@ -151,7 +147,6 @@ std::string	RPL_ENDOFNAMES(const std::string client, const std::string channel)
 {
 	return (":localhost 366 " + client + " " + channel + " :End of /NAMES list.\r\n");
 }
-
 
 // NICK
 std::string	ERR_NONICKNAMEGIVEN(const std::string client)

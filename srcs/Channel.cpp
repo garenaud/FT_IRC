@@ -11,7 +11,6 @@ Channel::Channel(std::string name, User	*user)
 	this->_mode.i = false;
 	this->_mode.t = false;
 	this->_mode.k = false;
-	// this->_mode.o = false;
 	this->_mode.l = false;
 	this->_max = INT_MAX;
 	this->_password = "";
@@ -31,7 +30,6 @@ Channel&	Channel::operator=(const Channel& other)
 {
 	if (this == &other)
 		return *this;
-
 	this->_name = other._name;
 	this->_topic = other._topic;
 	this->_mode = other._mode;
@@ -40,7 +38,6 @@ Channel&	Channel::operator=(const Channel& other)
 	this->_users = other._users;
 	this->_chanops = other._chanops;
 	this->_kickedUsers = other._kickedUsers;
-	
 	return *this;
 }
 
@@ -76,11 +73,6 @@ bool				Channel::getModeK() const
 {
 	return this->_mode.k;
 }
-
-// bool				Channel::getModeO() const
-// {
-// 	return this->_mode.o;
-// }
 
 bool				Channel::getModeL() const
 {
@@ -150,10 +142,6 @@ void	Channel::setRmMode(std::string mode)
 				if (this->_mode.k == false)
 					this->_mode.k = true;
 				break;
-			// case 'o' :
-			// 	if (this->_mode.o == false)
-			// 		this->_mode.o = true;
-			// 	break;
 			case 'l' :
 				if (this->_mode.l == false)
 					this->_mode.l= true;
@@ -178,10 +166,6 @@ void	Channel::setRmMode(std::string mode)
 				if (this->_mode.k == true)
 					this->_mode.k = false;
 				break;
-			// case 'o' :
-			// 	if (this->_mode.o == true)
-			// 		this->_mode.o = false;
-			// 	break;
 			case 'l' :
 				if (this->_mode.l == true)
 					this->_mode.l= false;
@@ -261,10 +245,7 @@ void	Channel::addUser(User &user)
 		return ;
 	}
 	else
-	{
 		this->_users.push_back(&user);
-		// std::cout << "user add to channel" << std::endl;
-	}
 }
 
 void	Channel::inviteUser(User &user, User &chanop)
@@ -338,24 +319,4 @@ void	Channel::kickChanops(User &user, User &chanop)
 			}
 		}
 	}
-}
-
-
-
-///// Utiles //////////////////////////////////////////////////////////////////////
-
-void	Channel::printUsers()
-{
-	std::vector<User *>::iterator it;
-
-	for (it = _users.begin(); it != _users.end(); ++it)
-		std::cout << (*it)->getNick() << std::endl; 
-}
-
-void	Channel::printChanops()
-{
-	std::vector<User *>::iterator it;
-
-	for (it = _chanops.begin(); it != _chanops.end(); ++it)
-		std::cout << (*it)->getNick() << std::endl; 
 }
