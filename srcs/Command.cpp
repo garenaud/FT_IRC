@@ -718,7 +718,7 @@ void	Command::topic(User &user, std::string prefix, std::vector<std::string> par
 				send(user.getFd(), ERR_NEEDMOREPARAMS(user.getNick(), "TOPIC").c_str(), ERR_NEEDMOREPARAMS(user.getNick(), "MODE").length(), 0);
 				return ;
 			}
-			if (params[1] == ":" && params.size() == 2)
+			if (params[1] == ":")
 			{
 				server.getChannel(channel)->setRmMode("-t");
 				server.getChannel(channel)->setTopic("");
