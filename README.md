@@ -1,5 +1,5 @@
 # IRC Project
-This project is an implementation of an IRC server in C++. It is part of the `ft_irc` module at 42 school. [Ft_irc subject](https://github.com/fpetras/42-subjects/blob/master/ft_irc.en.pdf "FT_irc")
+This project is an implementation of an IRC server in C++. It is part of the `ft_irc` module at 42 school. [Ft_irc subject](https://github.com/garenaud/FT_IRC/blob/master/IRC.subject.pdf "FT_irc")
 
 ## Features
 - User management
